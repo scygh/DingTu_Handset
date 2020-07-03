@@ -1,0 +1,48 @@
+package com.scy.dingtu_handset.mvp.contract;
+
+import com.jess.arms.mvp.IModel;
+import com.jess.arms.mvp.IView;
+import com.scy.dingtu_handset.app.api.BaseResponse;
+import com.scy.dingtu_handset.app.entity.CardInfoTo;
+import com.scy.dingtu_handset.app.entity.KeySwitchTo;
+import com.scy.dingtu_handset.app.entity.ReadCardTo;
+import com.scy.dingtu_handset.app.entity.SimpleExpenseParam;
+import com.scy.dingtu_handset.app.entity.SimpleExpenseTo;
+
+import io.reactivex.Observable;
+
+
+/**
+ * ================================================
+ * Description:
+ * <p>
+ * Created by MVPArmsTemplate on 10/09/2019 15:17
+ * <a href="mailto:jess.yan.effort@gmail.com">Contact me</a>
+ * <a href="https://github.com/JessYanCoding">Follow me</a>
+ * <a href="https://github.com/JessYanCoding/MVPArms">Star me</a>
+ * <a href="https://github.com/JessYanCoding/MVPArms/wiki">See me</a>
+ * <a href="https://github.com/JessYanCoding/MVPArmsTemplate">模版请保持更新</a>
+ * ================================================
+ */
+public interface AutoContract {
+    //对于经常使用的关于UI的方法可以定义到IView中,如显示隐藏进度条,和显示文字消息
+    interface View extends IView {
+
+        void creatSuccess(SimpleExpenseTo simpleExpenseTo);
+
+        void creatBill2(boolean isOpen);
+
+        void onReadCard(ReadCardTo readCardTo);    }
+
+    //Model层定义接口,外部只需关心Model返回的数据,无需关心内部细节,即是否使用缓存
+    interface Model extends IModel {
+        Observable<BaseResponse<CardInfoTo>> getByNumber(int number);
+
+        Observable<BaseResponse<SimpleExpenseTo>> createSimpleExpense(SimpleExpenseParam param);
+
+        Observable<BaseResponse<KeySwitchTo>> getEMDevice(int id);
+
+        Observable<BaseResponse<ReadCardTo>> addReadCard(int companyCode, int deviceID, int number);
+
+    }
+}
