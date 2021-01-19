@@ -3,9 +3,10 @@ package com.scy.dingtu_handset.mvp.contract;
 import com.jess.arms.mvp.IModel;
 import com.jess.arms.mvp.IView;
 import com.scy.dingtu_handset.app.api.BaseResponse;
+import com.scy.dingtu_handset.app.entity.BaseResponseAddisOK;
 import com.scy.dingtu_handset.app.entity.CardInfoTo;
 import com.scy.dingtu_handset.app.entity.MoneyParam;
-import com.scy.dingtu_handset.app.entity.ReadCardTo;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardResponse;
 import com.scy.dingtu_handset.app.entity.UserGetTo;
 
 import io.reactivex.Observable;
@@ -30,8 +31,6 @@ public interface CloseContract {
 
         void onDeregister();
 
-        void onReadCard(ReadCardTo content);
-
         void onUserGetTo(UserGetTo content);
     }
 
@@ -40,8 +39,6 @@ public interface CloseContract {
         Observable<BaseResponse<CardInfoTo>> getByNumber(int number);
 
         Observable<BaseResponse> addDeregister(MoneyParam param);
-
-        Observable<BaseResponse<ReadCardTo>> addReadCard(int companyCode, int deviceID, int number);
 
         Observable<BaseResponse<UserGetTo>> userGetTo(int number);
     }

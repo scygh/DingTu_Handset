@@ -1,10 +1,18 @@
 package com.scy.dingtu_handset.app.api;
 
 import com.scy.dingtu_handset.app.entity.AggregateTo;
+import com.scy.dingtu_handset.app.entity.BaseResponseAddisOK;
 import com.scy.dingtu_handset.app.entity.CardInfoTo;
 import com.scy.dingtu_handset.app.entity.CardTypeTo;
+import com.scy.dingtu_handset.app.entity.CodeExpenseRequest;
+import com.scy.dingtu_handset.app.entity.CodeExpenseResponse;
+import com.scy.dingtu_handset.app.entity.CodeReadRequest;
+import com.scy.dingtu_handset.app.entity.CodeReadResponse;
+import com.scy.dingtu_handset.app.entity.CodeRechargeRequest;
+import com.scy.dingtu_handset.app.entity.CodeRechargeResponse;
 import com.scy.dingtu_handset.app.entity.DepartmentTo;
 import com.scy.dingtu_handset.app.entity.DepositTo;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardRequest;
 import com.scy.dingtu_handset.app.entity.EMGoodsTo2;
 import com.scy.dingtu_handset.app.entity.EMGoodsTypeTo;
 import com.scy.dingtu_handset.app.entity.ExpenseTo;
@@ -18,7 +26,9 @@ import com.scy.dingtu_handset.app.entity.QRDepositParam;
 import com.scy.dingtu_handset.app.entity.QRExpenseParam;
 import com.scy.dingtu_handset.app.entity.QRExpenseTo;
 import com.scy.dingtu_handset.app.entity.QRReadTo;
-import com.scy.dingtu_handset.app.entity.ReadCardTo;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardResponse;
+import com.scy.dingtu_handset.app.entity.RefundRequest;
+import com.scy.dingtu_handset.app.entity.RefundResponse;
 import com.scy.dingtu_handset.app.entity.RegisterParam;
 import com.scy.dingtu_handset.app.entity.RoleTo;
 import com.scy.dingtu_handset.app.entity.SimpleExpenseParam;
@@ -34,6 +44,7 @@ import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
+import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface UserService {
@@ -49,9 +60,6 @@ public interface UserService {
 
     @GET("Api/User/GetByNumber")
     Observable<BaseResponse<CardInfoTo>> getByNumber(@Query("number") int number);
-
-    @POST("Api/Expense/SimpleExpense")
-    Observable<BaseResponse<SimpleExpenseTo>> createSimpleExpense(@Body SimpleExpenseParam param);
 
     @GET("Api/Config/GetConfig")
     Observable<BaseResponse<String>> getPayKeySwitch(@Query("key") String key);
@@ -89,14 +97,11 @@ public interface UserService {
     @POST("Api/User/Deregister")
     Observable<BaseResponse> addDeregister(@Body MoneyParam param);
 
-    @GET("Api/User/Card/Read")
-    Observable<BaseResponse<ReadCardTo>> addReadCard(@Query("qrCodeCompanyCode") int qrCodeCompanyCode, @Query("deviceID") int deviceID, @Query("number") int number);
-
-    @GET("Api/User/Card/ObtainByNumber")
+    @GET("Api/User/Card/Obtain")
     Observable<BaseResponse> addObtainByNumber(@Query("number") int number);
 
     @GET("Api/User/get")
-    Observable<BaseResponse<UserGetTo>> userGetTo(@Query("number") int number,@Query("IsGetFaceInfo") boolean IsGetFaceInfo);
+    Observable<BaseResponse<UserGetTo>> userGetTo(@Query("number") int number, @Query("IsGetFaceInfo") boolean IsGetFaceInfo);
 
     @GET("Api/ReportCenter/AggregateDepositAndExpenseReport")
     Observable<BaseResponse<List<AggregateTo>>> getAggregateTo(@Query("startTime") String startTime, @Query("endTime") String endTime);
@@ -126,7 +131,7 @@ public interface UserService {
     Observable<BaseResponse<MachineAmountTo>> getMachineTimeCount(@Query("deviceId") Integer deviceId);
 
     @GET("Api/Manager/GetRole")
-    Observable<BaseResponse<RoleTo>> getRole(@Query("userId") String userId);
+    Observable<BaseResponseAddisOK<RoleTo>> getRole(@Query("userId") String userId);
 
     @GET("Api/Order/GoodsDetail/List")
     Observable<OrderGoodsDetailList> getOrderGoodsDetailList(@Query("orderId") String orderId);
@@ -136,4 +141,25 @@ public interface UserService {
 
     @POST("Api/Expense/TakeOrder")
     Observable<OrderTake> takeOrder(@Query("orderId") String id);
+
+    @POST("IoTHubGateway/EM/HTTPv1/{companyCode}/{deviceId}/Trade/CardNumberRead")
+    Observable<BaseResponseAddisOK<DeviceReadCardResponse>> deviceReadCard(@Path("companyCode") int companyCode, @Path("deviceId") int deviceID, @Body DeviceReadCardRequest readCardRequest);
+
+    @POST("IoTHubGateway/EM/HTTPv1/{companyCode}/{deviceId}/Trade/CodeRead")
+    Observable<BaseResponseAddisOK<CodeReadResponse>> codeRead(@Path("companyCode") int qrCodeCompanyCode, @Path("deviceId") int deviceID, @Body CodeReadRequest param);
+
+    @POST("IoTHubGateway/EM/HTTPv1/{companyCode}/{deviceId}/Trade/CodeExpense")
+    Observable<BaseResponseAddisOK<CodeExpenseResponse>> codeExpense(@Path("companyCode") int qrCodeCompanyCode, @Path("deviceId") int deviceID, @Body CodeExpenseRequest param);
+
+    @POST("IoTHubGateway/EM/HTTPv1/{companyCode}/{deviceId}/Trade/SimpleExpense")
+    Observable<BaseResponse<SimpleExpenseTo>> createSimpleExpense(@Path("companyCode") int qrCodeCompanyCode, @Path("deviceId") int deviceID, @Body SimpleExpenseParam param);
+
+    @POST("IoTHubGateway/EM/HTTPv1/{companyCode}/{deviceId}/Trade/CodeRecharge")
+    Observable<BaseResponseAddisOK<CodeRechargeResponse>> codeRecharge(@Path("companyCode") int qrCodeCompanyCode, @Path("deviceId") int deviceID, @Body CodeRechargeRequest param);
+
+    @POST("IoTHubGateway/EM/HTTPv1/{companyCode}/{deviceId}/Trade/Recharge")
+    Observable<BaseResponseAddisOK<RefundResponse>> recharge(@Path("companyCode") int qrCodeCompanyCode, @Path("deviceId") int deviceID, @Body RefundRequest param);
+
+    @POST("/IoTHubGateway/EM/HTTPv1/{companyCode}/{deviceId}/Trade/Refund")
+    Observable<BaseResponseAddisOK<RefundResponse>> refund(@Path("companyCode") int qrCodeCompanyCode, @Path("deviceId") int deviceID, @Body RefundRequest param);
 }

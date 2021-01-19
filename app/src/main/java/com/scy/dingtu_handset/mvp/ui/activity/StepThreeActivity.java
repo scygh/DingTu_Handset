@@ -21,7 +21,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.alibaba.fastjson.JSON;
 import com.bigkoo.pickerview.builder.OptionsPickerBuilder;
 import com.bigkoo.pickerview.builder.TimePickerBuilder;
 import com.bigkoo.pickerview.listener.CustomListener;
@@ -45,9 +44,8 @@ import com.scy.dingtu_handset.mvp.presenter.StepThreePresenter;
 import com.scy.dingtu_handset.mvp.ui.widget.LoadDialog;
 import com.shuhart.stepview.StepView;
 
-import org.simple.eventbus.Subscriber;
-
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -145,14 +143,18 @@ public class StepThreeActivity extends BaseActivity<StepThreePresenter> implemen
         Calendar endDate = Calendar.getInstance();
         endDate.set(3000, 1, 1);
         Calendar _calendar = Calendar.getInstance();
-        _calendar.setTime(param.getDeadlineTT());
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-        deadline.setText(df.format(param.getDeadlineTT()));
+        try {
+            _calendar.setTime(df.parse(param.getDeadline().substring(0, 10)));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        deadline.setText(param.getDeadline());
         pvTime = new TimePickerBuilder(this, new OnTimeSelectListener() {
             @Override
             public void onTimeSelect(Date date, View v) {
                 deadline.setText(df.format(date));
-                param.setDeadlineTT(date);
+                param.setDeadline(df.format(date));
                 Log.i("pvTime", "onTimeSelect");
             }
         })
@@ -223,8 +225,7 @@ public class StepThreeActivity extends BaseActivity<StepThreePresenter> implemen
     @Override
     public void onDepartment(List<DepartmentTo> list) {
         department.setText(list.get(0).getName());
-        param.setDepartmentID(list.get(0).getId());
-        param.setDepartmentName(list.get(0).getName());
+        param.setDepartmentId(list.get(0).getId());
         /**
          * @description
          *
@@ -238,8 +239,7 @@ public class StepThreeActivity extends BaseActivity<StepThreePresenter> implemen
                 //返回的分别是三个级别的选中位置
                 String tx = list.get(options1).getPickerViewText();
                 department.setText(tx);
-                param.setDepartmentID(list.get(options1).getId());
-                param.setDepartmentName(list.get(options1).getName());
+                param.setDepartmentId(list.get(options1).getId());
             }
         })
                 .setLayoutRes(R.layout.pickerview_custom_options, new CustomListener() {
@@ -277,7 +277,6 @@ public class StepThreeActivity extends BaseActivity<StepThreePresenter> implemen
         intent.putExtra(AppConstant.ActivityIntent.STEP3, param);
         intent.setClass(StepThreeActivity.this, ClaimActivity.class);
         startActivity(intent);
-
     }
 
     @Override
@@ -303,19 +302,11 @@ public class StepThreeActivity extends BaseActivity<StepThreePresenter> implemen
                 }
 
                 param.setDeadline(deadline.getText().toString() + " 00:00:00");
-                Date date = new Date();
-//                param.setCardCreateTime(StringUtils.ConverToString(date));
-                param.setUserCreateTime(StringUtils.ConverToString(date));
+                param.setIsGotCard(true);
                 param.setSerialNo(number.getText().toString().trim());
                 param.setPayKey(password.getText().toString().trim());
-                Log.e(TAG, "onViewClicked: " + JSON.toJSONString(param));
                 mPresenter.onRegister(param);
                 break;
         }
-    }
-
-    @Subscriber(tag = EventBusTags.STEP_DONE)
-    public void closePage(String s) {
-        finish();
     }
 }

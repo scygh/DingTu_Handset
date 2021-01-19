@@ -36,7 +36,7 @@ import com.scy.dingtu_handset.app.configuration.UserInfoHelper;
 import com.scy.dingtu_handset.app.entity.CardInfoBean;
 import com.scy.dingtu_handset.app.entity.CardInfoTo;
 import com.scy.dingtu_handset.app.entity.MoneyParam;
-import com.scy.dingtu_handset.app.entity.ReadCardTo;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardResponse;
 import com.scy.dingtu_handset.app.entity.UserGetTo;
 import com.scy.dingtu_handset.app.listening.RFCardListening;
 import com.scy.dingtu_handset.app.nfc.NfcJellyBeanActivity;
@@ -54,11 +54,12 @@ import com.scy.dingtu_handset.mvp.presenter.ClosePresenter;
 import com.scy.dingtu_handset.mvp.ui.widget.HollowTextView;
 import com.scy.dingtu_handset.mvp.ui.widget.label.LabelRelativeLayout;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
-import butterknife.ButterKnife;
 import butterknife.OnClick;
 import io.reactivex.Flowable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -136,6 +137,7 @@ public class CloseActivity extends NfcJellyBeanActivity<ClosePresenter> implemen
     private ReadCardUtils readCardUtils;
     private String key;
     private boolean isPayBegin;
+    private boolean isFirst = true;
 
     @Override
     public void setupActivityComponent(@NonNull AppComponent appComponent) {
@@ -206,18 +208,22 @@ public class CloseActivity extends NfcJellyBeanActivity<ClosePresenter> implemen
                     showMessage("非本单位卡");
                     return;
                 }
+                if (!isFirst) {//保证是同一次的消费
+                    return;
+                }
                 //mPresenter.readtCardInfo(company, device, mCardInfoBean.getNum());
+                SoundTool.getMySound(CloseActivity.this).playMusic("success");//播放音频
                 mPresenter.userGetTo(mCardInfoBean.getNum());
             }
 
             @Override
             public void noFindRFCardListening() {
-
+                isFirst = true;
             }
 
             @Override
             public void failReadRFCardListening() {
-
+                isFirst = true;
             }
         });
     }
@@ -365,6 +371,7 @@ public class CloseActivity extends NfcJellyBeanActivity<ClosePresenter> implemen
 
     @Override
     public void onUserGetTo(UserGetTo content) {
+        isFirst = false;
         submit.setEnabled(true);//按钮可选
         submit.setText("确认注销");
         userGetTo = content;
@@ -375,7 +382,7 @@ public class CloseActivity extends NfcJellyBeanActivity<ClosePresenter> implemen
         } else {
             cardtype.setText("正常卡");
         }
-        cardcount.setText(content.getFinances().get(2).getBalance() + "次");
+        cardcount.setText((int) content.getFinances().get(2).getBalance() + "次");
         double sum1 = ArithUtil.add(content.getFinances().get(0).getBalance(), content.getFinances().get(3).getBalance());//现金加赠送 可以退的金额
         String amount = String.format("￥%.2f", content.getFinances().get(0).getBalance());//卡里正常金额
         SpannableStringBuilder builder = new SpannableStringBuilder(amount);
@@ -426,10 +433,6 @@ public class CloseActivity extends NfcJellyBeanActivity<ClosePresenter> implemen
                         nopeAnimator.end();
                     }
                 });
-    }
-
-    @Override
-    public void onReadCard(ReadCardTo content) {
     }
 
     @Override

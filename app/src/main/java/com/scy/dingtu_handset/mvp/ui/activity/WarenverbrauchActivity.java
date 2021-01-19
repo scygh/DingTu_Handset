@@ -32,6 +32,8 @@ import com.jess.arms.di.component.AppComponent;
 import com.jess.arms.utils.ArmsUtils;
 import com.scy.dingtu_handset.R;
 import com.scy.dingtu_handset.app.configuration.UserInfoHelper;
+import com.scy.dingtu_handset.app.entity.CodeExpenseRequest;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardRequest;
 import com.scy.dingtu_handset.app.entity.QRExpenseParam;
 import com.scy.dingtu_handset.app.nfc.BlackSetPrinterUtils;
 import com.scy.dingtu_handset.app.nfc.NfcJellyBeanActivity;
@@ -47,7 +49,7 @@ import com.scy.dingtu_handset.app.api.AppConstant;
 import com.scy.dingtu_handset.app.entity.CardInfoBean;
 import com.scy.dingtu_handset.app.entity.EMGoodsTo2;
 import com.scy.dingtu_handset.app.entity.EMGoodsTypeTo;
-import com.scy.dingtu_handset.app.entity.ReadCardTo;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardResponse;
 import com.scy.dingtu_handset.app.entity.SimpleExpenseParam;
 import com.scy.dingtu_handset.app.entity.SimpleExpenseTo;
 import com.scy.dingtu_handset.app.listening.RFCardListening;
@@ -76,6 +78,8 @@ import es.dmoral.toasty.Toasty;
 import io.reactivex.Flowable;
 import io.reactivex.functions.Consumer;
 import timber.log.Timber;
+
+import static com.jess.arms.utils.Preconditions.checkNotNull;
 
 
 /**
@@ -123,7 +127,7 @@ public class WarenverbrauchActivity extends NfcJellyBeanActivity<WarenverbrauchP
     private int payCount = 0;
     SimpleExpenseParam param;
     StringBuilder printer = new StringBuilder();
-    ReadCardTo readCardTo;
+    DeviceReadCardResponse readCardTo;
     View bottomView;
     TextView clearBottom;
     RecyclerView bottomRv;
@@ -135,7 +139,8 @@ public class WarenverbrauchActivity extends NfcJellyBeanActivity<WarenverbrauchP
     private AlertDialog alert;
     private boolean isPrint;
     private boolean isFirst = true;
-    private List<SimpleExpenseParam.ListGoodsBean> listGoodsBean = new ArrayList<>();//消费提交body
+    private List<SimpleExpenseParam.GoodsDetailsBean> listGoodsBean = new ArrayList<>();//消费提交body
+    private DeviceReadCardRequest deviceReadRequest;
 
     @Override
     public void setupActivityComponent(@NonNull AppComponent appComponent) {
@@ -209,7 +214,8 @@ public class WarenverbrauchActivity extends NfcJellyBeanActivity<WarenverbrauchP
                     } else if (isFirst) {
                         isFirst = false;
                         SoundTool.getMySound(WarenverbrauchActivity.this).playMusic("success");
-                        mPresenter.readtCardInfo(company, device, mCardInfoBean.getNum());
+                        deviceReadRequest = new DeviceReadCardRequest(mCardInfoBean.getNum());
+                        mPresenter.deviceReadCard(company, device, deviceReadRequest);
                     }
                 }
             }
@@ -256,16 +262,17 @@ public class WarenverbrauchActivity extends NfcJellyBeanActivity<WarenverbrauchP
                     return;
                 }
             }
-            mPresenter.readtCardInfo(company, device, mCardInfoBean.getNum());
+            deviceReadRequest = new DeviceReadCardRequest(mCardInfoBean.getNum());
+            mPresenter.deviceReadCard(company, device, deviceReadRequest);
         } else {
             System.out.println("intent null");
         }
     }
 
     @Override
-    public void onReadCard(ReadCardTo readCardTo) {
+    public void onReadCard(DeviceReadCardResponse readCardTo) {
         this.readCardTo = readCardTo;
-        payCount = readCardTo.getPayCount();
+        payCount = readCardTo.getNextPayCount();
         mPresenter.getPaySgetPayKeySwitch2();
     }
 
@@ -283,13 +290,11 @@ public class WarenverbrauchActivity extends NfcJellyBeanActivity<WarenverbrauchP
             param = new SimpleExpenseParam();
             param.setNumber(mCardInfoBean.getNum());
             param.setAmount(goodsPrices);
-            param.setDeviceID(Integer.valueOf(TextUtils.isEmpty(deviceID) ? "1" : deviceID));
-            param.setPayCount(payCount + 1);
+            param.setPayCount(payCount);
             param.setPayKey(pwd);
             param.setPattern(4);
-            param.setDeviceType(2);
-            param.setListGoods(listGoodsBean);
-            mPresenter.createSimpleExpense(param);
+            param.setGoodsDetails(listGoodsBean);
+            mPresenter.createSimpleExpense(company, device, param);
         }
     }
 
@@ -302,7 +307,7 @@ public class WarenverbrauchActivity extends NfcJellyBeanActivity<WarenverbrauchP
             String str = formatter.format(curDate);
 
             printer.append("\n工作模式: 商品消费");
-            printer.append("\n姓    名: " + readCardTo.getUserName());
+            printer.append("\n姓    名: " + readCardTo.getUser().getName());
             printer.append(String.format("\n折扣比率: %s", simpleExpenseTo.getExpenseDetail().getDiscountRate()));
             printer.append(String.format("\n实际消费: %.2f", simpleExpenseTo.getExpenseDetail().getAmount()));
             printer.append(String.format("\n账户余额: %.2f", simpleExpenseTo.getExpenseDetail().getBalance()));
@@ -333,7 +338,7 @@ public class WarenverbrauchActivity extends NfcJellyBeanActivity<WarenverbrauchP
         TextView account = dialog.findViewById(R.id.name);
         TextView balance = dialog.findViewById(R.id.balance);
         TextView cost = dialog.findViewById(R.id.cost);
-        account.setText(readCardTo.getUserName());
+        account.setText(readCardTo.getUser().getName());
         String amount = String.format("%.2f", expenseTo.getExpenseDetail().getBalance());
         SpannableStringBuilder builder = new SpannableStringBuilder(amount);
         builder.setSpan(new AbsoluteSizeSpan(ArmsUtils.sp2px(this, 27)), amount.indexOf("."), amount.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -380,13 +385,11 @@ public class WarenverbrauchActivity extends NfcJellyBeanActivity<WarenverbrauchP
                     param = new SimpleExpenseParam();
                     param.setNumber(mCardInfoBean.getNum());
                     param.setAmount(goodsPrices);
-                    param.setDeviceID(Integer.valueOf(TextUtils.isEmpty(deviceID) ? "1" : deviceID));
-                    param.setPayCount(payCount + 1);
+                    param.setPayCount(payCount);
                     param.setPayKey(pwd);
                     param.setPattern(4);
-                    param.setDeviceType(2);
-                    param.setListGoods(listGoodsBean);
-                    mPresenter.createSimpleExpense(param);
+                    param.setGoodsDetails(listGoodsBean);
+                    mPresenter.createSimpleExpense(company, device, param);
                 }
             });
         }
@@ -553,10 +556,10 @@ public class WarenverbrauchActivity extends NfcJellyBeanActivity<WarenverbrauchP
             case R.id.payall:
                 if (goodsPrices > 0) {
                     choicePay();
-                    SimpleExpenseParam.ListGoodsBean listGoods;
+                    SimpleExpenseParam.GoodsDetailsBean listGoods;
                     for (int i = 0; i < selectedBeans.size(); i++) {
                         for (int j = 0; j < selectedBeans.get(i).size(); j++) {
-                            listGoods = new SimpleExpenseParam.ListGoodsBean();
+                            listGoods = new SimpleExpenseParam.GoodsDetailsBean();
                             listGoods.setGoodsNo(selectedBeans.get(i).get(j).getGoods().getGoodsNo());
                             listGoods.setCount(1);
                             listGoodsBean.add(listGoods);
@@ -728,9 +731,9 @@ public class WarenverbrauchActivity extends NfcJellyBeanActivity<WarenverbrauchP
                     Intent intent = new Intent();
                     intent.putExtra("content", isbn);
                     intent.putExtra("amount", goodsPrices);
-                    ArrayList<QRExpenseParam.ListGoodsBean> listGoodsBeans = new ArrayList<>();
+                    ArrayList<CodeExpenseRequest.GoodsDetailsBean> listGoodsBeans = new ArrayList<>();
                     for (int i = 0; i < listGoodsBean.size(); i++) {
-                        listGoodsBeans.add(new QRExpenseParam.ListGoodsBean(listGoodsBean.get(i).getGoodsNo(), listGoodsBean.get(i).getCount()));
+                        listGoodsBeans.add(new CodeExpenseRequest.GoodsDetailsBean(listGoodsBean.get(i).getGoodsNo(), listGoodsBean.get(i).getCount()));
                     }
                     intent.putParcelableArrayListExtra("ListGoods", listGoodsBeans);
                     intent.setClass(WarenverbrauchActivity.this, PaymentActivity.class);
@@ -745,7 +748,8 @@ public class WarenverbrauchActivity extends NfcJellyBeanActivity<WarenverbrauchP
 
     @Override
     public void showMessage(@NonNull String message) {
-
+        checkNotNull(message);
+        ArmsUtils.snackbarText(message);
     }
 
     @Override

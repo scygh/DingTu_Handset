@@ -58,14 +58,15 @@ public class MainActivity extends BaseActivity<MainPresenter> implements MainCon
                 mReplace = 0;
                 break;
             case R.id.tab_mine:
-                boolean setup = (boolean) SpUtils.get(MainActivity.this, AppConstant.Api.BLOCK_SETUP,true);
-                if (setup){
+                boolean setup = (boolean) SpUtils.get(MainActivity.this, AppConstant.Api.BLOCK_SETUP, true);
+                if (setup) {
                     mReplace = 1;
                 }
                 break;
         }
         FragmentUtils.hideAllShowFragment(mFragments.get(mReplace));
     };
+
     @Override
     public void setupActivityComponent(AppComponent appComponent) {
         DaggerMainComponent //如找不到该类,请编译一下项目
@@ -86,7 +87,6 @@ public class MainActivity extends BaseActivity<MainPresenter> implements MainCon
         mPresenter.getRole();
         HomeFragment homeFragment;
         MineFragment mineFragment;
-
         if (savedInstanceState == null) {
             homeFragment = HomeFragment.newInstance();
             mineFragment = MineFragment.newInstance();
@@ -104,15 +104,15 @@ public class MainActivity extends BaseActivity<MainPresenter> implements MainCon
         }
         FragmentUtils.addFragments(getSupportFragmentManager(), mFragments, R.id.main_frame, 0);
         mBottomBar.setOnTabSelectListener(mOnTabSelectListener);
-
-        //updateApk();
-
+        updateApk();
     }
+
     private void updateApk() {
         TaskParams params = new TaskParams();
         MainTask.UpdateTask dbTask = new MainTask.UpdateTask(this, false);
         dbTask.execute(params);
     }
+
     @Override
     public void showLoading() {
 

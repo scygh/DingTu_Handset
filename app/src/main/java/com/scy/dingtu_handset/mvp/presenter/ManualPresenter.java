@@ -9,12 +9,14 @@ import com.jess.arms.di.scope.ActivityScope;
 import com.jess.arms.http.imageloader.ImageLoader;
 import com.jess.arms.integration.AppManager;
 import com.jess.arms.mvp.BasePresenter;
+import com.scy.dingtu_handset.app.entity.BaseResponseAddisOK;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardRequest;
 import com.scy.dingtu_handset.app.utils.RxUtils;
 import com.scy.dingtu_handset.app.utils.SpUtils;
 import com.scy.dingtu_handset.app.api.AppConstant;
 import com.scy.dingtu_handset.app.api.BaseResponse;
 import com.scy.dingtu_handset.app.entity.KeySwitchTo;
-import com.scy.dingtu_handset.app.entity.ReadCardTo;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardResponse;
 import com.scy.dingtu_handset.app.entity.SimpleExpenseParam;
 import com.scy.dingtu_handset.app.entity.SimpleExpenseTo;
 import com.scy.dingtu_handset.mvp.contract.ManualContract;
@@ -64,19 +66,20 @@ public class ManualPresenter extends BasePresenter<ManualContract.Model, ManualC
         this.mApplication = null;
     }
 
-    public void readtCardInfo(int company, int id, int number) {
-        mModel.addReadCard(company, id, number)
+    public void deviceReadCard(int company, int id, DeviceReadCardRequest readCardRequest) {
+        mModel.deviceReadCard(company, id, readCardRequest)
                 .compose(RxUtils.applySchedulers(mRootView))
-                .subscribe(new Observer<BaseResponse<ReadCardTo>>() {
+                .subscribe(new Observer<BaseResponseAddisOK<DeviceReadCardResponse>>() {
                     @Override
                     public void onSubscribe(Disposable d) {
 
                     }
 
-                    @Override public void onNext(BaseResponse<ReadCardTo> readCardToBaseResponse) {
-                        if (readCardToBaseResponse.getStatusCode()!=200){
+                    @Override
+                    public void onNext(BaseResponseAddisOK<DeviceReadCardResponse> readCardToBaseResponse) {
+                        if (readCardToBaseResponse.getStatusCode() != 200) {
                             mRootView.showMessage(readCardToBaseResponse.getMessage());
-                        }else {
+                        } else {
                             if (readCardToBaseResponse.isSuccess())
                                 if (readCardToBaseResponse.getContent() != null)
                                     mRootView.onReadCard(readCardToBaseResponse.getContent());
@@ -97,10 +100,11 @@ public class ManualPresenter extends BasePresenter<ManualContract.Model, ManualC
     }
 
     public void getPaySgetPayKeySwitch() {
-        mModel.getPayKeySwitch("PayKeySwitch")
+        mModel.getPayKeySwitch("DepositDonateSwitch")
                 .compose(RxUtils.applySchedulers(mRootView))
                 .subscribe(new ErrorHandleSubscriber<BaseResponse<String>>(mErrorHandler) {
-                    @Override public void onNext(BaseResponse<String> booleanBaseResponse) {
+                    @Override
+                    public void onNext(BaseResponse<String> booleanBaseResponse) {
                         if (booleanBaseResponse.isSuccess())
                             mRootView.creatBill(booleanBaseResponse.getContent());
                     }
@@ -118,10 +122,11 @@ public class ManualPresenter extends BasePresenter<ManualContract.Model, ManualC
 
                     }
 
-                    @Override public void onNext(BaseResponse<KeySwitchTo> keySwitchToBaseResponse) {
-                        if (keySwitchToBaseResponse.getStatusCode()!=200){
+                    @Override
+                    public void onNext(BaseResponse<KeySwitchTo> keySwitchToBaseResponse) {
+                        if (keySwitchToBaseResponse.getStatusCode() != 200) {
                             mRootView.showMessage(keySwitchToBaseResponse.getMessage());
-                        }else {
+                        } else {
                             if (keySwitchToBaseResponse.isSuccess())
                                 if (keySwitchToBaseResponse.getContent() != null)
                                     mRootView.creatBill2(keySwitchToBaseResponse.getContent().isKeyEnabled());
@@ -140,8 +145,8 @@ public class ManualPresenter extends BasePresenter<ManualContract.Model, ManualC
                 });
     }
 
-    public void createSimpleExpense(SimpleExpenseParam param) {
-        mModel.createSimpleExpense(param)
+    public void createSimpleExpense(int companyCode, int deviceID, SimpleExpenseParam param) {
+        mModel.createSimpleExpense(companyCode, deviceID, param)
                 .compose(RxUtils.applySchedulers(mRootView))
                 .subscribe(new Observer<BaseResponse<SimpleExpenseTo>>() {
                     @Override
@@ -149,23 +154,24 @@ public class ManualPresenter extends BasePresenter<ManualContract.Model, ManualC
 
                     }
 
-                    @Override public void onNext(BaseResponse<SimpleExpenseTo> simpleExpenseToBaseResponse) {
-                        if (simpleExpenseToBaseResponse.getStatusCode()!=200){
+                    @Override
+                    public void onNext(BaseResponse<SimpleExpenseTo> simpleExpenseToBaseResponse) {
+                        if (simpleExpenseToBaseResponse.getStatusCode() != 200) {
                             mRootView.showMessage(simpleExpenseToBaseResponse.getMessage());
-                            Log.e(TAG, "creatSuccess: "+ JSON.toJSONString(simpleExpenseToBaseResponse.getContent()) );
+                            Log.e(TAG, "creatSuccess: " + JSON.toJSONString(simpleExpenseToBaseResponse.getContent()));
 
-                        }else {
+                        } else {
                             if (simpleExpenseToBaseResponse.isSuccess())
                                 if (simpleExpenseToBaseResponse.getContent() != null)
                                     mRootView.creatSuccess(simpleExpenseToBaseResponse.getContent());
-                            Log.e(TAG, "creatSuccess: "+JSON.toJSONString(simpleExpenseToBaseResponse.getContent()) );
+                            Log.e(TAG, "creatSuccess: " + JSON.toJSONString(simpleExpenseToBaseResponse.getContent()));
                         }
 
                     }
 
                     @Override
                     public void onError(Throwable e) {
-                        Log.e(TAG, "onError: "+JSON.toJSONString(e) );
+                        Log.e(TAG, "onError: " + JSON.toJSONString(e));
 
                     }
 

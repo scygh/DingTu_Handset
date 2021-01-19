@@ -28,6 +28,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.alibaba.fastjson.JSON;
 import com.jess.arms.di.component.AppComponent;
@@ -37,7 +38,11 @@ import com.scy.dingtu_handset.app.api.AppConstant;
 import com.scy.dingtu_handset.app.configuration.UserInfoHelper;
 import com.scy.dingtu_handset.app.entity.CardInfoBean;
 import com.scy.dingtu_handset.app.entity.CardInfoTo;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardRequest;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardResponse;
 import com.scy.dingtu_handset.app.entity.MoneyParam;
+import com.scy.dingtu_handset.app.entity.RefundRequest;
+import com.scy.dingtu_handset.app.entity.RefundResponse;
 import com.scy.dingtu_handset.app.entity.UserGetTo;
 import com.scy.dingtu_handset.app.listening.RFCardListening;
 import com.scy.dingtu_handset.app.nfc.NfcJellyBeanActivity;
@@ -55,12 +60,15 @@ import com.scy.dingtu_handset.mvp.presenter.RechargePresenter;
 import com.scy.dingtu_handset.mvp.ui.widget.LoadDialog;
 import com.scy.dingtu_handset.mvp.ui.widget.label.LabelRelativeLayout;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import es.dmoral.toasty.Toasty;
 import io.reactivex.Flowable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
@@ -111,7 +119,7 @@ public class RechargeActivity extends NfcJellyBeanActivity<RechargePresenter> im
     LoadDialog loadDialog;
     CardInfoBean mCardInfoBean;
     int type;
-    UserGetTo userGetTo;
+    DeviceReadCardResponse deviceReadCardResponse;
 
     private static final int MESSAGE_SEARCH = 0x1;
     private static long INTERVAL = 1000; // 输入变化时间间隔
@@ -144,6 +152,15 @@ public class RechargeActivity extends NfcJellyBeanActivity<RechargePresenter> im
     LinearLayout linearLayout;
     private String key;
     private ReadCardUtils readCardUtils;
+    private DeviceReadCardRequest deviceReadCardRequest;
+    int company = 0;
+    int device = 0;
+    List<DeviceReadCardResponse.FinancesBean> flist = new ArrayList<>();
+    String fcash;
+    String fsubsidy;
+    int ftimes;
+    String fdonate;
+
 
     @Override
     public void setupActivityComponent(@NonNull AppComponent appComponent) {
@@ -196,6 +213,9 @@ public class RechargeActivity extends NfcJellyBeanActivity<RechargePresenter> im
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             initCardInfoReceived();//设置接收卡的循环
         }
+        company = UserInfoHelper.getInstance(this).getCode();//得到全局用户信息单例，拿到CompanyCode 在用户登录成功时就已经复值了
+        String _device = (String) SpUtils.get(this, AppConstant.Receipt.NO, "");
+        device = Integer.valueOf(TextUtils.isEmpty(_device) ? "1" : _device);//拿到机器号
     }
 
     private void initCardInfoReceived() {
@@ -231,7 +251,8 @@ public class RechargeActivity extends NfcJellyBeanActivity<RechargePresenter> im
                     return;
                 }
                 SoundTool.getMySound(RechargeActivity.this).playMusic("success");
-                mPresenter.userGetTo(mCardInfoBean.getNum());
+                deviceReadCardRequest = new DeviceReadCardRequest(mCardInfoBean.getNum());
+                mPresenter.deviceReadCard(company, device, deviceReadCardRequest);
             }
 
             @Override
@@ -274,42 +295,61 @@ public class RechargeActivity extends NfcJellyBeanActivity<RechargePresenter> im
                     return;
                 }
             }
-            mPresenter.userGetTo(mCardInfoBean.getNum());
+            deviceReadCardRequest = new DeviceReadCardRequest(mCardInfoBean.getNum());
+            mPresenter.deviceReadCard(company, device, deviceReadCardRequest);
         } else {
             System.out.println("intent null");
         }
     }
 
     @Override
-    public void onUserGetTo(UserGetTo content) {
+    public void onReadCard(DeviceReadCardResponse content) {
+        flist.clear();
+        flist.addAll(content.getFinances());
+        for (DeviceReadCardResponse.FinancesBean financesBean : flist) {
+            if (financesBean.getKind() == 0) {
+                fcash = String.format("￥%.2f", financesBean.getBalance());
+            } else if (financesBean.getKind() == 1) {
+                fsubsidy = String.format("%.2f", financesBean.getBalance());
+            } else if (financesBean.getKind() == 2) {
+                ftimes = (int) financesBean.getBalance();
+            } else if (financesBean.getKind() == 3) {
+                fdonate = String.format("%.2f", financesBean.getBalance());
+            } else if (financesBean.getKind() == 4) {
+
+            }
+        }
         submit.setEnabled(true);//按钮可选
         submit.setText("确认充值");
         et_amount.setText("");
         et_donate.setText("");
         et_money.setText("");
         isPayBegin = false;
-        userGetTo = content;
+        deviceReadCardResponse = content;
         name.setText(content.getUser().getName());
         number.setText("NO." + content.getCard().getNumber());
         type = content.getCard().getType();
+
         if (content.getCard().getType() == 2 || content.getCard().getType() == 3 || content.getCard().getType() == 4) {
             cardtypetv.setText("计次卡");
             rechargeTv1Name.setText("充值次数");
+            cardcount.setText(ftimes + "次");
             linearLayout.setVisibility(View.GONE);
+            balance.setText(ftimes + "");
         } else {
             cardtypetv.setText("正常卡");
             rechargeTv1Name.setText("充值金额");
             linearLayout.setVisibility(View.VISIBLE);
             rechargeTv2Name.setText("赠送金额");
+            donate.setText(fdonate);
+            subsidies.setText(fsubsidy);
+            SpannableStringBuilder builder = new SpannableStringBuilder(fcash);
+            builder.setSpan(new AbsoluteSizeSpan(ArmsUtils.sp2px(this, 24)), fcash.indexOf("￥"), fcash.indexOf("￥") + 1
+                    , Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            builder.setSpan(new AbsoluteSizeSpan(ArmsUtils.sp2px(this, 24)), fcash.indexOf("."), fcash.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            balance.setText(builder);
         }
-        cardcount.setText((int) content.getFinances().get(2).getBalance() + "次");
-        double sum1 = ArithUtil.add(content.getFinances().get(0).getBalance(), content.getFinances().get(3).getBalance());//现金加赠送 可以退的金额
-        String amount = String.format("￥%.2f", content.getFinances().get(0).getBalance());//卡里正常金额
-        SpannableStringBuilder builder = new SpannableStringBuilder(amount);
-        builder.setSpan(new AbsoluteSizeSpan(ArmsUtils.sp2px(this, 24)), amount.indexOf("￥"), amount.indexOf("￥") + 1
-                , Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        builder.setSpan(new AbsoluteSizeSpan(ArmsUtils.sp2px(this, 24)), amount.indexOf("."), amount.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        balance.setText(builder);
+
         String value;
         switch (content.getUser().getState()) {
             case 0:
@@ -335,8 +375,6 @@ public class RechargeActivity extends NfcJellyBeanActivity<RechargePresenter> im
                 break;
         }
         labelRelativeLayout.setTextContent(value);
-        donate.setText(String.format("%.2f", content.getFinances().get(3).getBalance()));
-        subsidies.setText(String.format("%.2f", content.getFinances().get(1).getBalance()));
         ObjectAnimator nopeAnimator = ShakeAnimation.nope(cardview);
         nopeAnimator.setRepeatCount(ValueAnimator.INFINITE);
         nopeAnimator.start();
@@ -415,16 +453,25 @@ public class RechargeActivity extends NfcJellyBeanActivity<RechargePresenter> im
         submit.setEnabled(false);
         submit.setText("重新刷卡，启用按钮");
         String deviceID = (String) SpUtils.get(this, AppConstant.Receipt.NO, "");
-        MoneyParam param = new MoneyParam();
+        RefundRequest param = new RefundRequest();
 
-        param.setUserID(userGetTo.getUser().getId());
-        param.setNumber(userGetTo.getCard().getNumber());
-        param.setDeviceID(Integer.valueOf(TextUtils.isEmpty(deviceID) ? "1" : deviceID));
+        param.setNumber(deviceReadCardResponse.getCard().getNumber());
         param.setAmount(TextUtils.isEmpty(et_amount.getText().toString().trim()) ? 0 : Double.valueOf(et_amount.getText().toString().trim()));
-        param.setMoney(TextUtils.isEmpty(et_money.getText().toString().trim()) ? 0 : Double.valueOf(et_money.getText().toString().trim()));
         param.setDonate(TextUtils.isEmpty(et_donate.getText().toString().trim()) ? 0 : Double.valueOf(et_donate.getText().toString().trim()));
-        mPresenter.onDeposit(param, userGetTo.getCard().getType());
-        Log.e(TAG, "onViewClicked: " + JSON.toJSONString(param));
+        param.setPattern(5);
+        param.setPayCount(deviceReadCardResponse.getNextPayCount());
+        mPresenter.recharge(company, device, param);
 
+    }
+
+    @Override
+    public void onRecharge(RefundResponse refundResponse) {
+        deviceReadCardRequest = new DeviceReadCardRequest(refundResponse.getDepositDetail().getNumber());
+        mPresenter.deviceReadCard(company, device, deviceReadCardRequest);
+        if (type == 1) {
+            AudioUtils.getInstance().speakText(String.format("充值%.2f元", refundResponse.getDepositDetail().getAmount()));
+        } else if (type == 4) {
+            AudioUtils.getInstance().speakText("充值" + (int) refundResponse.getDepositDetail().getAmount() + "次");
+        }
     }
 }

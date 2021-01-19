@@ -3,6 +3,7 @@ package com.scy.dingtu_handset.mvp.contract;
 import com.jess.arms.mvp.IModel;
 import com.jess.arms.mvp.IView;
 import com.scy.dingtu_handset.app.api.BaseResponse;
+import com.scy.dingtu_handset.app.entity.BaseResponseAddisOK;
 import com.scy.dingtu_handset.app.entity.RoleTo;
 
 import io.reactivex.Observable;
@@ -28,7 +29,7 @@ public interface MainContract {
 
     //Model层定义接口,外部只需关心Model返回的数据,无需关心内部细节,即是否使用缓存
     interface Model extends IModel {
-        Observable<BaseResponse<RoleTo>> getRole(String userId);
+        Observable<BaseResponseAddisOK<RoleTo>> getRole(String userId);
 
     }
 }

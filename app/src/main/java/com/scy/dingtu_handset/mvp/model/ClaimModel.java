@@ -9,6 +9,7 @@ import com.jess.arms.mvp.BaseModel;
 import com.scy.dingtu_handset.app.api.UserService;
 import com.scy.dingtu_handset.app.api.BaseResponse;
 import com.scy.dingtu_handset.app.entity.CardInfoTo;
+import com.scy.dingtu_handset.app.entity.UserGetTo;
 import com.scy.dingtu_handset.mvp.contract.ClaimContract;
 
 import javax.inject.Inject;
@@ -46,11 +47,14 @@ public class ClaimModel extends BaseModel implements ClaimContract.Model {
         this.mGson = null;
         this.mApplication = null;
     }
-    @Override public Observable<BaseResponse<CardInfoTo>> getByNumber(int number) {
-        return mRepositoryManager.obtainRetrofitService(UserService.class).getByNumber(number);
+
+    @Override
+    public Observable<BaseResponse> addObtainByNumber(int number) {
+        return mRepositoryManager.obtainRetrofitService(UserService.class).addObtainByNumber(number);
     }
 
-    @Override public Observable<BaseResponse> addObtainByNumber(int number) {
-        return mRepositoryManager.obtainRetrofitService(UserService.class).addObtainByNumber(number);
+    @Override
+    public Observable<BaseResponse<UserGetTo>> userGetTo(int number) {
+        return mRepositoryManager.obtainRetrofitService(UserService.class).userGetTo(number, false);
     }
 }

@@ -28,11 +28,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.alibaba.fastjson.JSON;
-import com.jess.arms.base.BaseActivity;
 import com.jess.arms.di.component.AppComponent;
 import com.jess.arms.utils.ArmsUtils;
 import com.scy.dingtu_handset.R;
 import com.scy.dingtu_handset.app.configuration.UserInfoHelper;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardRequest;
 import com.scy.dingtu_handset.app.nfc.BlackSetPrinterUtils;
 import com.scy.dingtu_handset.app.nfc.NfcJellyBeanActivity;
 import com.scy.dingtu_handset.app.utils.AntiShake;
@@ -47,7 +47,7 @@ import com.scy.dingtu_handset.app.utils.card.SoundTool;
 import com.scy.dingtu_handset.app.api.AppConstant;
 import com.scy.dingtu_handset.app.entity.CardInfoBean;
 import com.scy.dingtu_handset.app.entity.CardInfoTo;
-import com.scy.dingtu_handset.app.entity.ReadCardTo;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardResponse;
 import com.scy.dingtu_handset.app.entity.SimpleExpenseParam;
 import com.scy.dingtu_handset.app.entity.SimpleExpenseTo;
 import com.scy.dingtu_handset.app.listening.RFCardListening;
@@ -59,8 +59,10 @@ import com.scy.dingtu_handset.mvp.ui.widget.MyAnimation;
 import com.scy.dingtu_handset.mvp.ui.widget.PayDialog;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
@@ -116,6 +118,12 @@ public class ManualActivity extends NfcJellyBeanActivity<ManualPresenter> implem
     private String key;
     boolean isFirst = true;
     private boolean isPrint;
+    private DeviceReadCardRequest deviceReadCard;
+    List<DeviceReadCardResponse.FinancesBean> flist = new ArrayList<>();
+    double fcash;
+    double fsubsidy;
+    int ftimes;
+    double fdonate;
 
     @Override
     public void setupActivityComponent(@NonNull AppComponent appComponent) {
@@ -200,7 +208,8 @@ public class ManualActivity extends NfcJellyBeanActivity<ManualPresenter> implem
                         return;
                     }
                     SoundTool.getMySound(ManualActivity.this).playMusic("success");
-                    mPresenter.readtCardInfo(company, device, mCardInfoBean.getNum());
+                    deviceReadCard = new DeviceReadCardRequest(mCardInfoBean.getNum());
+                    mPresenter.deviceReadCard(company, device, deviceReadCard);
                 }
             }
 
@@ -244,7 +253,8 @@ public class ManualActivity extends NfcJellyBeanActivity<ManualPresenter> implem
                     return;
                 }
             }
-            mPresenter.readtCardInfo(company, device, mCardInfoBean.getNum());
+            deviceReadCard = new DeviceReadCardRequest(mCardInfoBean.getNum());
+            mPresenter.deviceReadCard(company, device, deviceReadCard);
         } else {
             System.out.println("intent null");
         }
@@ -393,12 +403,10 @@ public class ManualActivity extends NfcJellyBeanActivity<ManualPresenter> implem
                     String deviceID = (String) SpUtils.get(ManualActivity.this, AppConstant.Receipt.NO, "");
                     param.setNumber(mCardInfoBean.getNum());
                     param.setAmount(Double.parseDouble(cost.getText().toString().trim()));
-                    param.setDeviceID(Integer.valueOf(TextUtils.isEmpty(deviceID) ? "1" : deviceID));
-                    param.setPayCount(payCount + 1);
+                    param.setPayCount(payCount);
                     param.setPayKey(pwd);
                     param.setPattern(1);
-                    param.setDeviceType(2);
-                    mPresenter.createSimpleExpense(param);
+                    mPresenter.createSimpleExpense(company, device, param);
                 }
             });
         }
@@ -434,12 +442,10 @@ public class ManualActivity extends NfcJellyBeanActivity<ManualPresenter> implem
         } else {
             String deviceID = (String) SpUtils.get(this, AppConstant.Receipt.NO, "");
             param.setAmount(Double.parseDouble(cost.getText().toString().trim()));
-            param.setDeviceID(Integer.valueOf(TextUtils.isEmpty(deviceID) ? "1" : deviceID));
-            param.setPayCount(payCount + 1);
+            param.setPayCount(payCount);
             param.setPayKey(pwd);
             param.setPattern(1);
-            param.setDeviceType(2);
-            mPresenter.createSimpleExpense(param);
+            mPresenter.createSimpleExpense(company, device, param);
         }
 
 
@@ -459,29 +465,44 @@ public class ManualActivity extends NfcJellyBeanActivity<ManualPresenter> implem
         } else {
             String deviceID = (String) SpUtils.get(this, AppConstant.Receipt.NO, "");
             param.setAmount(Double.parseDouble(cost.getText().toString().trim()));
-            param.setDeviceID(Integer.valueOf(TextUtils.isEmpty(deviceID) ? "1" : deviceID));
-            param.setPayCount(payCount + 1);
+            param.setPayCount(payCount);
             param.setPayKey(pwd);
             param.setPattern(1);
-            param.setDeviceType(2);
-            mPresenter.createSimpleExpense(param);
+            mPresenter.createSimpleExpense(company, device, param);
         }
     }
 
     @Override
-    public void onReadCard(ReadCardTo readCardTo) {
+    public void onReadCard(DeviceReadCardResponse readCardTo) {
+        flist.clear();
+        flist.addAll(readCardTo.getFinances());
+        for (DeviceReadCardResponse.FinancesBean financesBean : flist) {
+            if (financesBean.getKind() == 0) {
+                fcash = financesBean.getBalance();
+            } else if (financesBean.getKind() == 1) {
+                fsubsidy = financesBean.getBalance();
+            } else if (financesBean.getKind() == 2) {
+                ftimes = (int) financesBean.getBalance();
+            } else if (financesBean.getKind() == 3) {
+                fdonate = financesBean.getBalance();
+            } else if (financesBean.getKind() == 4) {
+
+            }
+        }
         isFirst = false;
-        param.setNumber(readCardTo.getNumber());
-        payCount = readCardTo.getPayCount();
-        name.setText(readCardTo.getUserName());
+        param.setNumber(readCardTo.getCard().getNumber());
+        payCount = readCardTo.getNextPayCount();
+        name.setText(readCardTo.getUser().getName());
+        if (readCardTo.getCard().getType() == 2 || readCardTo.getCard().getType() == 3 || readCardTo.getCard().getType() == 4) {
 
-        String amount = String.format("￥%.2f", readCardTo.getBalance());
-        SpannableStringBuilder builder = new SpannableStringBuilder(amount);
-        builder.setSpan(new AbsoluteSizeSpan(ArmsUtils.sp2px(this, 27)), amount.indexOf("￥"), amount.indexOf("￥") + 1
-                , Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        builder.setSpan(new AbsoluteSizeSpan(ArmsUtils.sp2px(this, 27)), amount.indexOf("."), amount.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-        balance.setText(builder);
+        } else {
+            String amount = String.format("￥%.2f", fcash + fdonate + fsubsidy);
+            SpannableStringBuilder builder = new SpannableStringBuilder(amount);
+            builder.setSpan(new AbsoluteSizeSpan(ArmsUtils.sp2px(this, 27)), amount.indexOf("￥"), amount.indexOf("￥") + 1
+                    , Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            builder.setSpan(new AbsoluteSizeSpan(ArmsUtils.sp2px(this, 27)), amount.indexOf("."), amount.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            balance.setText(builder);
+        }
 
 
         ObjectAnimator nopeAnimator = ShakeAnimation.nope(cardview);

@@ -8,10 +8,12 @@ import com.jess.arms.integration.IRepositoryManager;
 import com.jess.arms.mvp.BaseModel;
 import com.scy.dingtu_handset.app.api.UserService;
 import com.scy.dingtu_handset.app.api.BaseResponse;
+import com.scy.dingtu_handset.app.entity.BaseResponseAddisOK;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardRequest;
 import com.scy.dingtu_handset.app.entity.EMGoodsTo2;
 import com.scy.dingtu_handset.app.entity.EMGoodsTypeTo;
 import com.scy.dingtu_handset.app.entity.KeySwitchTo;
-import com.scy.dingtu_handset.app.entity.ReadCardTo;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardResponse;
 import com.scy.dingtu_handset.app.entity.SimpleExpenseParam;
 import com.scy.dingtu_handset.app.entity.SimpleExpenseTo;
 import com.scy.dingtu_handset.mvp.contract.WarenverbrauchContract;
@@ -54,16 +56,19 @@ public class WarenverbrauchModel extends BaseModel implements WarenverbrauchCont
         this.mApplication = null;
     }
 
-    @Override public Observable<BaseResponse<List<EMGoodsTypeTo>>> findEMGoodsType(String state) {
+    @Override
+    public Observable<BaseResponse<List<EMGoodsTypeTo>>> findEMGoodsType(String state) {
         return mRepositoryManager.obtainRetrofitService(UserService.class).findEMGoodsType(state);
     }
 
-    @Override public Observable<BaseResponse<EMGoodsTo2>> findEMGoods(int index, int count, String goodsType) {
+    @Override
+    public Observable<BaseResponse<EMGoodsTo2>> findEMGoods(int index, int count, String goodsType) {
         return mRepositoryManager.obtainRetrofitService(UserService.class).findEMGoods(index, count, goodsType);
     }
 
-    @Override public Observable<BaseResponse<ReadCardTo>> addReadCard(int companyCode, int deviceID, int number) {
-        return mRepositoryManager.obtainRetrofitService(UserService.class).addReadCard(companyCode, deviceID, number);
+    @Override
+    public Observable<BaseResponseAddisOK<DeviceReadCardResponse>> deviceReadCard(int companyCode, int deviceID, DeviceReadCardRequest readCardRequest) {
+        return mRepositoryManager.obtainRetrofitService(UserService.class).deviceReadCard(companyCode, deviceID, readCardRequest);
     }
 
     @Override
@@ -72,8 +77,8 @@ public class WarenverbrauchModel extends BaseModel implements WarenverbrauchCont
     }
 
     @Override
-    public Observable<BaseResponse<SimpleExpenseTo>> createSimpleExpense(SimpleExpenseParam param) {
-        return mRepositoryManager.obtainRetrofitService(UserService.class).createSimpleExpense(param);
+    public Observable<BaseResponse<SimpleExpenseTo>> createSimpleExpense(int companyCode, int deviceID, SimpleExpenseParam param) {
+        return mRepositoryManager.obtainRetrofitService(UserService.class).createSimpleExpense(companyCode, deviceID, param);
     }
 
 }

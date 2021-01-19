@@ -6,6 +6,7 @@ import com.jess.arms.di.scope.ActivityScope;
 import com.jess.arms.http.imageloader.ImageLoader;
 import com.jess.arms.integration.AppManager;
 import com.jess.arms.mvp.BasePresenter;
+import com.scy.dingtu_handset.app.entity.UserGetTo;
 import com.scy.dingtu_handset.app.utils.RxUtils;
 import com.scy.dingtu_handset.app.api.BaseResponse;
 import com.scy.dingtu_handset.app.entity.CardInfoTo;
@@ -54,34 +55,36 @@ public class ClaimPresenter extends BasePresenter<ClaimContract.Model, ClaimCont
         this.mImageLoader = null;
         this.mApplication = null;
     }
-    public void onByNumber(int number) {
-        mModel.getByNumber(number)
+
+    public void userGetTo(int number) {
+        mModel.userGetTo(number)
                 .compose(RxUtils.applySchedulers(mRootView))
-                .subscribe(new Observer<BaseResponse<CardInfoTo>>() {
+                .subscribe(new Observer<BaseResponse<UserGetTo>>() {
                     @Override
-                    public void onSubscribe(Disposable d) {
-
-                    }
-
-                    @Override public void onNext(BaseResponse<CardInfoTo> cardInfoToBaseResponse) {
-                        if (cardInfoToBaseResponse.getStatusCode()!=200){
-                            mRootView.showMessage(cardInfoToBaseResponse.getMessage());
-                        }else {
-                            if (cardInfoToBaseResponse.isSuccess())
-                                mRootView.onCardInfo(cardInfoToBaseResponse.getContent());
-                        }
-
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-
+                    public void onError(Throwable t) {
                     }
 
                     @Override
                     public void onComplete() {
 
                     }
+
+                    @Override
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(BaseResponse<UserGetTo> readCardToBaseResponse) {
+                        if (readCardToBaseResponse.getStatusCode() != 200) {
+                            mRootView.showMessage(readCardToBaseResponse.getMessage());
+                        } else {
+                            if (readCardToBaseResponse.isSuccess())
+                                if (readCardToBaseResponse.getContent() != null)
+                                    mRootView.onUserGetTo(readCardToBaseResponse.getContent());
+                        }
+                    }
+
                 });
     }
 
@@ -94,10 +97,11 @@ public class ClaimPresenter extends BasePresenter<ClaimContract.Model, ClaimCont
 
                     }
 
-                    @Override public void onNext(BaseResponse baseResponse) {
-                        if (baseResponse.getStatusCode()!=200){
+                    @Override
+                    public void onNext(BaseResponse baseResponse) {
+                        if (baseResponse.getStatusCode() != 200) {
                             mRootView.showMessage(baseResponse.getMessage());
-                        }else {
+                        } else {
                             if (baseResponse.isSuccess())
                                 mRootView.onSuccess(baseResponse.isResult());
                         }

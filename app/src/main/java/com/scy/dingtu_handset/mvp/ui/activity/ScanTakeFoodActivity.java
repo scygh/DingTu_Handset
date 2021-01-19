@@ -223,17 +223,23 @@ public class ScanTakeFoodActivity extends BaseActivity<ScanTakeFoodPresenter> im
         id = get.getContent().getId();
         orderId.setText(get.getContent().getId());
         int state = get.getContent().getState();
-        if (state == -2) {
-            tvState.setText("未取餐已过期");
+        if (state == -3) {
+            tvState.setText("退款中");
+            startTakeorder.setEnabled(false);
+        } else if (state == -2) {
+            tvState.setText("已过期");
             startTakeorder.setEnabled(false);
         } else if (state == -1) {
             tvState.setText("已取消");
             startTakeorder.setEnabled(false);
         } else if (state == 0) {
+            tvState.setText("预创建");
+            startTakeorder.setEnabled(false);
+        } else if (state == 1) {
             tvState.setText("已订餐");
             startTakeorder.setEnabled(true);
-        } else if (state == 1) {
-            tvState.setText("已取餐");
+        } else if (state == 2) {
+            tvState.setText("已完成");
             startTakeorder.setEnabled(false);
         }
         AheadAmount.setText(get.getContent().getAheadAmount() + "元");

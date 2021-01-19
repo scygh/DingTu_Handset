@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".mvp.ui.activity.ZXingScanActivity">
 
-    <cn.bingoogolapple.qrcode.zxing.ZXingView
+    <com.scy.dingtu_handset.app.scanqrcode.ZXingView
         android:id="@+id/zxingview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -17,17 +17,23 @@
         app:qrcv_cornerColor="@android:color/holo_green_light"
         app:qrcv_cornerLength="20dp"
         app:qrcv_cornerSize="5dp"
+        app:qrcv_isAutoZoom="true"
         app:qrcv_isShowDefaultScanLineDrawable="true"
+        app:qrcv_isShowLocationPoint="true"
         app:qrcv_isShowTipTextAsSingleLine="true"
+
         app:qrcv_isTipTextBelowRect="true"
         app:qrcv_maskColor="#64000000"
-
         app:qrcv_qrCodeTipText="将二维码放入框内，自动扫描"
-        app:qrcv_rectWidth="200dp"
+        app:qrcv_rectWidth="250dp"
+
         app:qrcv_scanLineColor="@android:color/holo_green_light"
         app:qrcv_scanLineSize="2dp"
-
         app:qrcv_tipTextColor="@android:color/white"
         app:qrcv_tipTextMargin="15dp"
         app:qrcv_tipTextSize="18dp" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 </RelativeLayout>

@@ -3,8 +3,13 @@ package com.scy.dingtu_handset.mvp.contract;
 import com.jess.arms.mvp.IModel;
 import com.jess.arms.mvp.IView;
 import com.scy.dingtu_handset.app.api.BaseResponse;
+import com.scy.dingtu_handset.app.entity.BaseResponseAddisOK;
 import com.scy.dingtu_handset.app.entity.CardInfoTo;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardRequest;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardResponse;
 import com.scy.dingtu_handset.app.entity.MoneyParam;
+import com.scy.dingtu_handset.app.entity.RefundRequest;
+import com.scy.dingtu_handset.app.entity.RefundResponse;
 import com.scy.dingtu_handset.app.entity.UserGetTo;
 
 import io.reactivex.Observable;
@@ -28,6 +33,10 @@ public interface RefundContract {
         void onCardInfo(CardInfoTo cardInfoTo);
 
         void onUserGetTo(UserGetTo content);
+
+        void onReadCard(DeviceReadCardResponse readCardTo);
+
+        void onRefund(RefundResponse refundResponse);
     }
 
     //Model层定义接口,外部只需关心Model返回的数据,无需关心内部细节,即是否使用缓存
@@ -36,6 +45,8 @@ public interface RefundContract {
 
         Observable<BaseResponse> addRefund(MoneyParam param);
 
-        Observable<BaseResponse<UserGetTo>> userGetTo(int number);
+        Observable<BaseResponseAddisOK<DeviceReadCardResponse>> deviceReadCard(int companyCode, int deviceID, DeviceReadCardRequest readCardRequest);
+
+        Observable<BaseResponseAddisOK<RefundResponse>> refund(int companyCode, int deviceID, RefundRequest refundRequest);
     }
 }

@@ -1,10 +1,13 @@
 package com.scy.dingtu_handset.mvp.ui.activity;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
@@ -27,6 +30,7 @@ import com.jess.arms.di.component.AppComponent;
 import com.jess.arms.utils.ArmsUtils;
 import com.scy.dingtu_handset.R;
 import com.scy.dingtu_handset.app.configuration.UserInfoHelper;
+import com.scy.dingtu_handset.app.entity.UserGetTo;
 import com.scy.dingtu_handset.app.nfc.NfcJellyBeanActivity;
 import com.scy.dingtu_handset.app.utils.AudioUtils;
 import com.scy.dingtu_handset.app.utils.DoubleUtil;
@@ -47,8 +51,6 @@ import com.scy.dingtu_handset.mvp.contract.ClaimContract;
 import com.scy.dingtu_handset.mvp.presenter.ClaimPresenter;
 import com.scy.dingtu_handset.mvp.ui.widget.LoadDialog;
 import com.shuhart.stepview.StepView;
-
-import org.simple.eventbus.EventBus;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -85,17 +87,26 @@ public class ClaimActivity extends NfcJellyBeanActivity<ClaimPresenter> implemen
     Tag tag;
     @BindView(R.id.cardview1)
     CardView cardview1;
-    @BindView(R.id.cardview2) CardView cardview2;
-    @BindView(R.id.cardview3) CardView cardview3;
+    @BindView(R.id.cardview2)
+    CardView cardview2;
+    @BindView(R.id.cardview3)
+    CardView cardview3;
     @BindView(R.id.time)
     TextView time;
-    @BindView(R.id.name) TextView name;
-    @BindView(R.id.type) TextView type;
-    @BindView(R.id.number) TextView number;
-    @BindView(R.id.balance) TextView balance;
-    @BindView(R.id.tv1) TextView tv1;
-    @BindView(R.id.donate) TextView donate;
-    @BindView(R.id.subsidies) TextView subsidies;
+    @BindView(R.id.name)
+    TextView name;
+    @BindView(R.id.type)
+    TextView type;
+    @BindView(R.id.number)
+    TextView number;
+    @BindView(R.id.balance)
+    TextView balance;
+    @BindView(R.id.tv1)
+    TextView tv1;
+    @BindView(R.id.donate)
+    TextView donate;
+    @BindView(R.id.subsidies)
+    TextView subsidies;
 
     boolean isFirst = true;
     boolean isPayBegin = true;
@@ -123,7 +134,7 @@ public class ClaimActivity extends NfcJellyBeanActivity<ClaimPresenter> implemen
     public void initData(@Nullable Bundle savedInstanceState) {
         this.setTitle("开户领卡");
         setupWindowAnimations();
-        mCardInfoBean= new CardInfoBean();
+        mCardInfoBean = new CardInfoBean();
         key = (String) SpUtils.get(this, AppConstant.NFC.NFC_KEY, "");
 
         param = (RegisterParam) getIntent().getSerializableExtra(AppConstant.ActivityIntent.STEP3);
@@ -171,7 +182,7 @@ public class ClaimActivity extends NfcJellyBeanActivity<ClaimPresenter> implemen
 
             @Override
             public void readRFCardListening(String data) {
-                Log.e(TAG, "handleMessage: data:"+data);
+                Log.e(TAG, "handleMessage: data:" + data);
                 String num = data.substring(0, 6);
                 mCardInfoBean.setNum(Integer.parseInt(num, 16));
                 mCardInfoBean.setName(BytesUtils2.getString(BytesUtils.hexStringToBytes(data.substring(8, 26))));
@@ -185,7 +196,7 @@ public class ClaimActivity extends NfcJellyBeanActivity<ClaimPresenter> implemen
                     showMessage("非空卡片，操作失败");
                     return;
                 }
-                if (!isPayBegin){
+                if (!isPayBegin) {
                     return;
                 }
                 if (!isFirst) {
@@ -194,17 +205,17 @@ public class ClaimActivity extends NfcJellyBeanActivity<ClaimPresenter> implemen
                     return;
                 }
                 SoundTool.getMySound(ClaimActivity.this).playMusic("success");
-                mPresenter.onByNumber(param.getNumber());
+                mPresenter.userGetTo(param.getNumber());
             }
 
             @Override
             public void noFindRFCardListening() {
-                isPayBegin=true;
+                isPayBegin = true;
             }
 
             @Override
             public void failReadRFCardListening() {
-                isPayBegin=true;
+                isPayBegin = true;
             }
         });
     }
@@ -229,7 +240,7 @@ public class ClaimActivity extends NfcJellyBeanActivity<ClaimPresenter> implemen
                 showMessage("非空卡片，操作失败");
                 return;
             }
-            mPresenter.onByNumber(param.getNumber());
+            mPresenter.userGetTo(param.getNumber());
         } else {
             System.out.println("intent null");
         }
@@ -248,6 +259,7 @@ public class ClaimActivity extends NfcJellyBeanActivity<ClaimPresenter> implemen
     public void hideLoading() {
         LoadDialog.getInstance().dismiss();
     }
+
     @Override
     public void showMessage(@NonNull String message) {
         checkNotNull(message);
@@ -265,37 +277,38 @@ public class ClaimActivity extends NfcJellyBeanActivity<ClaimPresenter> implemen
         finish();
     }
 
-    @Override public void onCardInfo(CardInfoTo cardInfoTo) {
-        isPayBegin=false;
-        name.setText(cardInfoTo.getName());
-        number.setText("NO." + cardInfoTo.getSerialNo());
-        String amount = String.format("￥%.2f", cardInfoTo.getCash());
+    @Override
+    public void onUserGetTo(UserGetTo content) {
+        isPayBegin = false;
+        name.setText(content.getUser().getName());
+        number.setText("NO." + content.getCard().getSerialNo());
+        String amount = String.format("￥%.2f", content.getFinances().get(0).getBalance());
         SpannableStringBuilder builder = new SpannableStringBuilder(amount);
         builder.setSpan(new AbsoluteSizeSpan(ArmsUtils.sp2px(this, 24)), amount.indexOf("￥"), amount.indexOf("￥") + 1
                 , Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         builder.setSpan(new AbsoluteSizeSpan(ArmsUtils.sp2px(this, 24)), amount.indexOf("."), amount.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 
         balance.setText(builder);
-        donate.setText(String.format("%.2f", cardInfoTo.getDonate()));
-        subsidies.setText(String.format("%.2f", cardInfoTo.getSubsidy()));
+        donate.setText(String.format("%.2f", content.getFinances().get(3).getBalance()));
+        subsidies.setText(String.format("%.2f", content.getFinances().get(1).getBalance()));
 
-        type.setText(cardInfoTo.getCardTypeName());
-        time.setText("开户时间 " + cardInfoTo.getCardCreateTime());
+        type.setText(content.getCard().getType() + "");
+        time.setText("开户时间 " + content.getCard().getCreateTime());
 
-        mCardInfoBean.setNum(cardInfoTo.getNumber());
-        mCardInfoBean.setName(cardInfoTo.getName());
+        mCardInfoBean.setNum(content.getCard().getNumber());
+        mCardInfoBean.setName(content.getUser().getName());
         String _cod = Integer.toHexString(UserInfoHelper.getInstance(this).getCode());
         String str = addZeroForNum(_cod, 4);
         mCardInfoBean.setCode(str);
 
-        mCardInfoBean.setCash_account(DoubleUtil.add2(cardInfoTo.getCash(), cardInfoTo.getDonate()));
+        mCardInfoBean.setCash_account(DoubleUtil.add2(content.getFinances().get(0).getBalance(), content.getFinances().get(3).getBalance()));
         mCardInfoBean.setAllowance_account(0);
         mCardInfoBean.setConsumption_num(0);
 
-        mCardInfoBean.setType(cardInfoTo.getCardType());
-        mCardInfoBean.setLevel(cardInfoTo.getSubsidyLevel());
-        mCardInfoBean.setGuaranteed_amount(cardInfoTo.getForegift());
-        mCardInfoBean.setCard_validity(cardInfoTo.getDeadline().substring(0, 10));
+        mCardInfoBean.setType(content.getCard().getType());
+        mCardInfoBean.setLevel(content.getCard().getLevel());
+        //mCardInfoBean.setGuaranteed_amount(content.getCard().get);
+        mCardInfoBean.setCard_validity(content.getCard().getDeadline().substring(0, 10));
 
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
         Date curDate = new Date(System.currentTimeMillis());//获取当前时间
@@ -311,20 +324,20 @@ public class ClaimActivity extends NfcJellyBeanActivity<ClaimPresenter> implemen
         Log.e(TAG, "comfirm: " + JSON.toJSONString(mCardInfoBean));
         boolean success;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            success =readCardUtils.Write(mCardInfoBean);
+            success = readCardUtils.Write(mCardInfoBean);
         } else {
             success = Commands.getInstance(ClaimActivity.this).writeTag(tag, mCardInfoBean);
         }
-        Log.e(TAG, "onCardInfo: "+success );
+        Log.e(TAG, "onCardInfo: " + success);
         if (success) {
             mPresenter.onObtainByNumber(param.getNumber());
             closeReadNfc();
         }
-
     }
 
 
-    @Override public void onSuccess(boolean yes) {
+    @Override
+    public void onSuccess(boolean yes) {
         isFirst = false;
         cardview1.setVisibility(View.GONE);
         cardview2.setVisibility(View.VISIBLE);
@@ -334,8 +347,22 @@ public class ClaimActivity extends NfcJellyBeanActivity<ClaimPresenter> implemen
         cardview2.scheduleLayoutAnimation();
         cardview3.setLayoutAnimation(controller);
         cardview3.scheduleLayoutAnimation();
-        EventBus.getDefault().post("step_done", EventBusTags.STEP_DONE);
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                finish();
+            }
+        }, 1000);
+
     }
+
+    @SuppressLint("HandlerLeak")
+    Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+        }
+    };
 
     public static String addZeroForNum(String str, int strLength) {
         if (TextUtils.isEmpty(str)) {

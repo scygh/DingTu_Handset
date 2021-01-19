@@ -7,6 +7,14 @@ import com.jess.arms.di.scope.ActivityScope;
 import com.jess.arms.http.imageloader.ImageLoader;
 import com.jess.arms.integration.AppManager;
 import com.jess.arms.mvp.BasePresenter;
+import com.scy.dingtu_handset.app.entity.BaseResponseAddisOK;
+import com.scy.dingtu_handset.app.entity.CodeReadRequest;
+import com.scy.dingtu_handset.app.entity.CodeReadResponse;
+import com.scy.dingtu_handset.app.entity.CodeRechargeRequest;
+import com.scy.dingtu_handset.app.entity.CodeRechargeResponse;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardRequest;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardResponse;
+import com.scy.dingtu_handset.app.entity.UserGetTo;
 import com.scy.dingtu_handset.app.utils.RxUtils;
 import com.scy.dingtu_handset.app.api.BaseResponse;
 import com.scy.dingtu_handset.app.entity.CardInfoTo;
@@ -56,22 +64,24 @@ public class QRDepositPresenter extends BasePresenter<QRDepositContract.Model, Q
         this.mImageLoader = null;
         this.mApplication = null;
     }
-    public void getCardInfo(int number) {
-        mModel.getByNumber(number)
+
+    public void codeRead(int company, int id, CodeReadRequest codeReadRequest) {
+        mModel.codeRead(company, id, codeReadRequest)
                 .compose(RxUtils.applySchedulers(mRootView))
-                .subscribe(new Observer<BaseResponse<CardInfoTo>>() {
+                .subscribe(new Observer<BaseResponseAddisOK<CodeReadResponse>>() {
                     @Override
                     public void onSubscribe(Disposable d) {
 
                     }
 
-                    @Override public void onNext(BaseResponse<CardInfoTo> cardInfoToBaseResponse) {
-                        if (cardInfoToBaseResponse.getStatusCode()!=200){
+                    @Override
+                    public void onNext(BaseResponseAddisOK<CodeReadResponse> cardInfoToBaseResponse) {
+                        if (cardInfoToBaseResponse.getStatusCode() != 200) {
                             mRootView.showMessage(cardInfoToBaseResponse.getMessage());
-                        }else {
+                        } else {
                             if (cardInfoToBaseResponse.isSuccess())
                                 if (cardInfoToBaseResponse.getContent() != null)
-                                    mRootView.onCardInfo(cardInfoToBaseResponse.getContent());
+                                    mRootView.onCodeRead(cardInfoToBaseResponse.getContent());
                         }
                     }
 
@@ -87,11 +97,45 @@ public class QRDepositPresenter extends BasePresenter<QRDepositContract.Model, Q
                 });
     }
 
-    public void getQRDposit(QRDepositParam param){
-        mModel.getQRDeposit(param)
+
+    public void deviceReadCard(int company, int id, DeviceReadCardRequest readCardRequest) {
+        mModel.deviceReadCard(company, id, readCardRequest)
                 .compose(RxUtils.applySchedulers(mRootView))
-                .subscribe(new Observer<BaseResponse>() {
-                    @Override public void onError(Throwable t) {
+                .subscribe(new Observer<BaseResponseAddisOK<DeviceReadCardResponse>>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(BaseResponseAddisOK<DeviceReadCardResponse> readCardToBaseResponse) {
+                        if (readCardToBaseResponse.getStatusCode() != 200) {
+                            mRootView.showMessage(readCardToBaseResponse.getMessage());
+                        } else {
+                            if (readCardToBaseResponse.isSuccess())
+                                if (readCardToBaseResponse.getContent() != null)
+                                    mRootView.onReadCard(readCardToBaseResponse.getContent());
+                        }
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+    }
+
+    public void codeRecharge(int company, int id, CodeRechargeRequest codeRechargeRequest) {
+        mModel.codeRecharge(company, id, codeRechargeRequest)
+                .compose(RxUtils.applySchedulers(mRootView))
+                .subscribe(new Observer<BaseResponseAddisOK<CodeRechargeResponse>>() {
+                    @Override
+                    public void onError(Throwable t) {
                     }
 
                     @Override
@@ -104,13 +148,14 @@ public class QRDepositPresenter extends BasePresenter<QRDepositContract.Model, Q
 
                     }
 
-                    @Override public void onNext(BaseResponse baseResponse) {
-                        if (baseResponse.getStatusCode()!=200){
+                    @Override
+                    public void onNext(BaseResponseAddisOK<CodeRechargeResponse> baseResponse) {
+                        if (baseResponse.getStatusCode() != 200) {
                             mRootView.showMessage(baseResponse.getMessage());
-                            Log.e(TAG, "onNext: "+baseResponse.getMessage());
-                        }else {
-                            if(baseResponse.isSuccess())
-                                getCardInfo(param.getNumber());
+                            Log.e(TAG, "onNext: " + baseResponse.getMessage());
+                        } else {
+                            if (baseResponse.isSuccess())
+                                mRootView.onCodeRecharge(baseResponse.getContent());
                         }
 
                     }

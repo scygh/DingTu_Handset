@@ -24,11 +24,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.alibaba.fastjson.JSON;
-import com.jess.arms.base.BaseActivity;
 import com.jess.arms.di.component.AppComponent;
 import com.jess.arms.utils.ArmsUtils;
 import com.scy.dingtu_handset.R;
 import com.scy.dingtu_handset.app.configuration.UserInfoHelper;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardRequest;
 import com.scy.dingtu_handset.app.nfc.BlackSetPrinterUtils;
 import com.scy.dingtu_handset.app.nfc.NfcJellyBeanActivity;
 import com.scy.dingtu_handset.app.utils.AdConstant;
@@ -43,7 +43,7 @@ import com.scy.dingtu_handset.app.utils.card.ReadCardUtils;
 import com.scy.dingtu_handset.app.utils.card.SoundTool;
 import com.scy.dingtu_handset.app.api.AppConstant;
 import com.scy.dingtu_handset.app.entity.CardInfoBean;
-import com.scy.dingtu_handset.app.entity.ReadCardTo;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardResponse;
 import com.scy.dingtu_handset.app.entity.SimpleExpenseParam;
 import com.scy.dingtu_handset.app.entity.SimpleExpenseTo;
 import com.scy.dingtu_handset.app.listening.RFCardListening;
@@ -107,6 +107,7 @@ public class AutoActivity extends NfcJellyBeanActivity<AutoPresenter> implements
 
     private boolean isFirst = true;
     private boolean isPrint;
+    private DeviceReadCardRequest deviceReadRequest;
 
     @Override
     public void setupActivityComponent(@NonNull AppComponent appComponent) {
@@ -195,7 +196,8 @@ public class AutoActivity extends NfcJellyBeanActivity<AutoPresenter> implements
                     return;
                 }
                 SoundTool.getMySound(AutoActivity.this).playMusic("success");//播放音频
-                mPresenter.readtCardInfo(company, device, cardInfoBean.getNum());//请求接口去消费
+                deviceReadRequest = new DeviceReadCardRequest(cardInfoBean.getNum());
+                mPresenter.deviceReadCard(company, device, deviceReadRequest);//请求接口去消费
             }
 
             @Override
@@ -241,7 +243,8 @@ public class AutoActivity extends NfcJellyBeanActivity<AutoPresenter> implements
                     return;
                 }
             }
-            mPresenter.readtCardInfo(company, device, cardInfoBean.getNum());
+            deviceReadRequest = new DeviceReadCardRequest(cardInfoBean.getNum());
+            mPresenter.deviceReadCard(company, device, deviceReadRequest);
         } else {
             System.out.println("intent null");
         }
@@ -251,11 +254,11 @@ public class AutoActivity extends NfcJellyBeanActivity<AutoPresenter> implements
      * descirption: 读卡返回，再去读卡是否有密码
      */
     @Override
-    public void onReadCard(ReadCardTo readCardTo) {
+    public void onReadCard(DeviceReadCardResponse readCardTo) {
         isFirst = false;
-        param.setNumber(readCardTo.getNumber());
-        name = readCardTo.getUserName();
-        payCount = readCardTo.getPayCount();
+        param.setNumber(readCardTo.getCard().getNumber());
+        name = readCardTo.getUser().getName();
+        payCount = readCardTo.getNextPayCount();
         mPresenter.getPaySgetPayKeySwitch2();
     }
 
@@ -277,12 +280,10 @@ public class AutoActivity extends NfcJellyBeanActivity<AutoPresenter> implements
             String deviceID = (String) SpUtils.get(this, AppConstant.Receipt.NO, "");
             param.setNumber(cardInfoBean.getNum());
             param.setAmount(Double.parseDouble(cost.getText().toString().trim()));
-            param.setDeviceID(Integer.valueOf(TextUtils.isEmpty(deviceID) ? "1" : deviceID));
-            param.setPayCount(payCount + 1);
+            param.setPayCount(payCount);
             param.setPayKey(pwd);
             param.setPattern(2);
-            param.setDeviceType(2);
-            mPresenter.createSimpleExpense(param);
+            mPresenter.createSimpleExpense(company, device, param);
         }
     }
 
@@ -316,12 +317,10 @@ public class AutoActivity extends NfcJellyBeanActivity<AutoPresenter> implements
                     String deviceID = (String) SpUtils.get(AutoActivity.this, AppConstant.Receipt.NO, "");
                     param.setNumber(cardInfoBean.getNum());
                     param.setAmount(Double.parseDouble(cost.getText().toString().trim()));
-                    param.setDeviceID(Integer.valueOf(TextUtils.isEmpty(deviceID) ? "1" : deviceID));
-                    param.setPayCount(payCount + 1);
+                    param.setPayCount(payCount);
                     param.setPayKey(pwd);
                     param.setPattern(2);
-                    param.setDeviceType(2);
-                    mPresenter.createSimpleExpense(param);
+                    mPresenter.createSimpleExpense(company, device, param);
                 }
             });
         }

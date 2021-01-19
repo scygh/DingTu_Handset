@@ -5,233 +5,237 @@ import java.util.List;
 
 public class SimpleExpenseTo implements Serializable {
 
+    /**
+     * State : 0
+     * ExpenseDetail : {"Id":"string","UserId":"string","Number":0,"DeviceType":0,"DeviceId":0,"Pattern":1,"DetailType":0,"PayCount":0,"Finance":0,"OriginalAmount":0,"Amount":0,"Balance":0,"IsDiscount":true,"DiscountRate":0,"TradeDateTime":"2021-01-08T02:15:07.972Z","CreateTime":"2021-01-08T02:15:07.972Z","Description":"string","OfflinePayCount":0}
+     * GoodsDetails : [{"Id":"string","Eid":"string","GoodsNo":0,"OrderNo":0,"GoodsName":"string","Price":0,"Amount":0,"Count":0,"CreateTime":"2021-01-08T02:15:07.972Z"}]
+     */
+
+    private int State;
     private ExpenseDetailBean ExpenseDetail;
-    private List<ListEMGoodsDetailBean> ListEMGoodsDetails;
-    private ThirdPartyExpenseBean ThirdPartyExpense;
+    private List<GoodsDetailsBean> GoodsDetails;
+
+    public int getState() {
+        return State;
+    }
+
+    public void setState(int State) {
+        this.State = State;
+    }
 
     public ExpenseDetailBean getExpenseDetail() {
         return ExpenseDetail;
     }
 
-    public void setExpenseDetail(ExpenseDetailBean expenseDetail) {
-        ExpenseDetail = expenseDetail;
+    public void setExpenseDetail(ExpenseDetailBean ExpenseDetail) {
+        this.ExpenseDetail = ExpenseDetail;
     }
 
-    public List<ListEMGoodsDetailBean> getListEMGoodsDetails() {
-        return ListEMGoodsDetails;
+    public List<GoodsDetailsBean> getGoodsDetails() {
+        return GoodsDetails;
     }
 
-    public void setListEMGoodsDetails(List<ListEMGoodsDetailBean> listEMGoodsDetails) {
-        ListEMGoodsDetails = listEMGoodsDetails;
-    }
-
-    public ThirdPartyExpenseBean getThirdPartyExpense() {
-        return ThirdPartyExpense;
-    }
-
-    public void setThirdPartyExpense(ThirdPartyExpenseBean thirdPartyExpense) {
-        ThirdPartyExpense = thirdPartyExpense;
+    public void setGoodsDetails(List<GoodsDetailsBean> GoodsDetails) {
+        this.GoodsDetails = GoodsDetails;
     }
 
     public static class ExpenseDetailBean {
         /**
-         *  "Id": "00000000-0000-0000-0000-000000000000",
-         *       "UserId": "00000000-0000-0000-0000-000000000000",
-         *       "Number": 0,
-         *       "DeviceType": 1,
-         *       "DeviceId": 0,
-         *       "Pattern": 1,
-         *       "DetailType": 0,
-         *       "PayCount": 0,
-         *       "Finance": 0,
-         *       "OriginalAmount": 0,
-         *       "Amount": 0,
-         *       "Balance": 0,
-         *       "IsDiscount": true,
-         *       "DiscountRate": 0,
-         *       "TradeDateTime": "2019-08-19T02:49:30.690Z",
-         *       "CreateTime": "2019-08-19T02:49:30.690Z",
-         *       "Description": "string",
-         *       "OfflinePayCount": 0
+         * Id : string
+         * UserId : string
+         * Number : 0
+         * DeviceType : 0
+         * DeviceId : 0
+         * Pattern : 1
+         * DetailType : 0
+         * PayCount : 0
+         * Finance : 0
+         * OriginalAmount : 0
+         * Amount : 0
+         * Balance : 0
+         * IsDiscount : true
+         * DiscountRate : 0
+         * TradeDateTime : 2021-01-08T02:15:07.972Z
+         * CreateTime : 2021-01-08T02:15:07.972Z
+         * Description : string
+         * OfflinePayCount : 0
          */
 
         private String Id;
         private String UserId;
         private int Number;
         private int DeviceType;
-        private int DeviceID;
+        private int DeviceId;
         private int Pattern;
         private int DetailType;
         private int PayCount;
-        private int Finance;
+        private double Finance;
         private double OriginalAmount;
         private double Amount;
         private double Balance;
         private boolean IsDiscount;
         private int DiscountRate;
-
         private String TradeDateTime;
         private String CreateTime;
         private String Description;
         private int OfflinePayCount;
 
-
         public String getId() {
             return Id;
         }
 
-        public void setId(String id) {
-            Id = id;
+        public void setId(String Id) {
+            this.Id = Id;
         }
 
         public String getUserId() {
             return UserId;
         }
 
-        public void setUserId(String userId) {
-            UserId = userId;
+        public void setUserId(String UserId) {
+            this.UserId = UserId;
         }
 
         public int getNumber() {
             return Number;
         }
 
-        public void setNumber(int number) {
-            Number = number;
+        public void setNumber(int Number) {
+            this.Number = Number;
         }
 
         public int getDeviceType() {
             return DeviceType;
         }
 
-        public void setDeviceType(int deviceType) {
-            DeviceType = deviceType;
+        public void setDeviceType(int DeviceType) {
+            this.DeviceType = DeviceType;
         }
 
-        public int getDeviceID() {
-            return DeviceID;
+        public int getDeviceId() {
+            return DeviceId;
         }
 
-        public void setDeviceID(int deviceID) {
-            DeviceID = deviceID;
+        public void setDeviceId(int DeviceId) {
+            this.DeviceId = DeviceId;
         }
 
         public int getPattern() {
             return Pattern;
         }
 
-        public void setPattern(int pattern) {
-            Pattern = pattern;
+        public void setPattern(int Pattern) {
+            this.Pattern = Pattern;
         }
 
         public int getDetailType() {
             return DetailType;
         }
 
-        public void setDetailType(int detailType) {
-            DetailType = detailType;
+        public void setDetailType(int DetailType) {
+            this.DetailType = DetailType;
         }
 
         public int getPayCount() {
             return PayCount;
         }
 
-        public void setPayCount(int payCount) {
-            PayCount = payCount;
+        public void setPayCount(int PayCount) {
+            this.PayCount = PayCount;
         }
 
-        public int getFinance() {
+        public double getFinance() {
             return Finance;
         }
 
-        public void setFinance(int finance) {
-            Finance = finance;
+        public void setFinance(double Finance) {
+            this.Finance = Finance;
         }
 
         public double getOriginalAmount() {
             return OriginalAmount;
         }
 
-        public void setOriginalAmount(double originalAmount) {
-            OriginalAmount = originalAmount;
+        public void setOriginalAmount(double OriginalAmount) {
+            this.OriginalAmount = OriginalAmount;
         }
 
         public double getAmount() {
             return Amount;
         }
 
-        public void setAmount(double amount) {
-            Amount = amount;
+        public void setAmount(double Amount) {
+            this.Amount = Amount;
         }
 
         public double getBalance() {
             return Balance;
         }
 
-        public void setBalance(double balance) {
-            Balance = balance;
+        public void setBalance(double Balance) {
+            this.Balance = Balance;
         }
 
-        public boolean isDiscount() {
+        public boolean isIsDiscount() {
             return IsDiscount;
         }
 
-        public void setDiscount(boolean discount) {
-            IsDiscount = discount;
+        public void setIsDiscount(boolean IsDiscount) {
+            this.IsDiscount = IsDiscount;
         }
 
         public int getDiscountRate() {
             return DiscountRate;
         }
 
-        public void setDiscountRate(int discountRate) {
-            DiscountRate = discountRate;
+        public void setDiscountRate(int DiscountRate) {
+            this.DiscountRate = DiscountRate;
         }
 
         public String getTradeDateTime() {
             return TradeDateTime;
         }
 
-        public void setTradeDateTime(String tradeDateTime) {
-            TradeDateTime = tradeDateTime;
+        public void setTradeDateTime(String TradeDateTime) {
+            this.TradeDateTime = TradeDateTime;
         }
 
         public String getCreateTime() {
             return CreateTime;
         }
 
-        public void setCreateTime(String createTime) {
-            CreateTime = createTime;
+        public void setCreateTime(String CreateTime) {
+            this.CreateTime = CreateTime;
         }
 
         public String getDescription() {
             return Description;
         }
 
-        public void setDescription(String description) {
-            Description = description;
+        public void setDescription(String Description) {
+            this.Description = Description;
         }
 
         public int getOfflinePayCount() {
             return OfflinePayCount;
         }
 
-        public void setOfflinePayCount(int offlinePayCount) {
-            OfflinePayCount = offlinePayCount;
+        public void setOfflinePayCount(int OfflinePayCount) {
+            this.OfflinePayCount = OfflinePayCount;
         }
     }
 
-    public static class ListEMGoodsDetailBean {
+    public static class GoodsDetailsBean {
         /**
-         * "Id": "00000000-0000-0000-0000-000000000000",
-         *         "Eid": "00000000-0000-0000-0000-000000000000",
-         *         "GoodsNo": 0,
-         *         "OrderNo": 0,
-         *         "GoodsName": "string",
-         *         "Price": 0,
-         *         "Amount": 0,
-         *         "Count": 0,
-         *         "CreateTime": "2019-08-19T02:49:30.690Z"
+         * Id : string
+         * Eid : string
+         * GoodsNo : 0
+         * OrderNo : 0
+         * GoodsName : string
+         * Price : 0
+         * Amount : 0
+         * Count : 0
+         * CreateTime : 2021-01-08T02:15:07.972Z
          */
 
         private String Id;
@@ -248,247 +252,72 @@ public class SimpleExpenseTo implements Serializable {
             return Id;
         }
 
-        public void setId(String id) {
-            Id = id;
+        public void setId(String Id) {
+            this.Id = Id;
         }
 
         public String getEid() {
             return Eid;
         }
 
-        public void setEid(String eid) {
-            Eid = eid;
+        public void setEid(String Eid) {
+            this.Eid = Eid;
         }
 
         public int getGoodsNo() {
             return GoodsNo;
         }
 
-        public void setGoodsNo(int goodsNo) {
-            GoodsNo = goodsNo;
+        public void setGoodsNo(int GoodsNo) {
+            this.GoodsNo = GoodsNo;
         }
 
         public int getOrderNo() {
             return OrderNo;
         }
 
-        public void setOrderNo(int orderNo) {
-            OrderNo = orderNo;
+        public void setOrderNo(int OrderNo) {
+            this.OrderNo = OrderNo;
         }
 
         public String getGoodsName() {
             return GoodsName;
         }
 
-        public void setGoodsName(String goodsName) {
-            GoodsName = goodsName;
+        public void setGoodsName(String GoodsName) {
+            this.GoodsName = GoodsName;
         }
 
         public double getPrice() {
             return Price;
         }
 
-        public void setPrice(double price) {
-            Price = price;
+        public void setPrice(double Price) {
+            this.Price = Price;
         }
 
         public double getAmount() {
             return Amount;
         }
 
-        public void setAmount(double amount) {
-            Amount = amount;
+        public void setAmount(double Amount) {
+            this.Amount = Amount;
         }
 
         public int getCount() {
             return Count;
         }
 
-        public void setCount(int count) {
-            Count = count;
+        public void setCount(int Count) {
+            this.Count = Count;
         }
 
         public String getCreateTime() {
             return CreateTime;
         }
 
-        public void setCreateTime(String createTime) {
-            CreateTime = createTime;
-        }
-    }
-    public static class ThirdPartyExpenseBean {
-        /**
-         *   "Id": "00000000-0000-0000-0000-000000000000",
-         *       "DeviceType": 1,
-         *       "DeviceId": 0,
-         *       "Pattern": 1,
-         *       "DetailType": 0,
-         *       "OriginalAmount": 0,
-         *       "Amount": 0,
-         *       "IsDiscount": true,
-         *       "DiscountRate": 0,
-         *       "TradeDateTime": "2019-08-19T02:49:30.690Z",
-         *       "CreateTime": "2019-08-19T02:49:30.690Z",
-         *       "Description": "string",
-         *       "ThirdPartyUserId": "string",
-         *       "ThirdPartySourceId": "string",
-         *       "OurSourceId": "string",
-         *       "PayWay": 0,
-         *       "Channel": 0,
-         *       "State": 0
-         */
-        private String Id;
-        private int DeviceType;
-        private int DeviceId;
-        private int Pattern;
-        private int DetailType;
-        private double OriginalAmount;
-        private double Amount;
-        private boolean IsDiscount;
-        private String TradeDateTime;
-        private String CreateTime;
-        private String Description;
-        private String ThirdPartyUserId;
-        private String ThirdPartySourceId;
-        private String OurSourceId;
-        private int PayWay;
-        private int Channel;
-        private int State;
-
-        public String getId() {
-            return Id;
-        }
-
-        public void setId(String id) {
-            Id = id;
-        }
-
-        public int getDeviceType() {
-            return DeviceType;
-        }
-
-        public void setDeviceType(int deviceType) {
-            DeviceType = deviceType;
-        }
-
-        public int getDeviceId() {
-            return DeviceId;
-        }
-
-        public void setDeviceId(int deviceId) {
-            DeviceId = deviceId;
-        }
-
-        public int getPattern() {
-            return Pattern;
-        }
-
-        public void setPattern(int pattern) {
-            Pattern = pattern;
-        }
-
-        public int getDetailType() {
-            return DetailType;
-        }
-
-        public void setDetailType(int detailType) {
-            DetailType = detailType;
-        }
-
-        public double getOriginalAmount() {
-            return OriginalAmount;
-        }
-
-        public void setOriginalAmount(double originalAmount) {
-            OriginalAmount = originalAmount;
-        }
-
-        public double getAmount() {
-            return Amount;
-        }
-
-        public void setAmount(double amount) {
-            Amount = amount;
-        }
-
-        public boolean isDiscount() {
-            return IsDiscount;
-        }
-
-        public void setDiscount(boolean discount) {
-            IsDiscount = discount;
-        }
-
-        public String getTradeDateTime() {
-            return TradeDateTime;
-        }
-
-        public void setTradeDateTime(String tradeDateTime) {
-            TradeDateTime = tradeDateTime;
-        }
-
-        public String getCreateTime() {
-            return CreateTime;
-        }
-
-        public void setCreateTime(String createTime) {
-            CreateTime = createTime;
-        }
-
-        public String getDescription() {
-            return Description;
-        }
-
-        public void setDescription(String description) {
-            Description = description;
-        }
-
-        public String getThirdPartyUserId() {
-            return ThirdPartyUserId;
-        }
-
-        public void setThirdPartyUserId(String thirdPartyUserId) {
-            ThirdPartyUserId = thirdPartyUserId;
-        }
-
-        public String getThirdPartySourceId() {
-            return ThirdPartySourceId;
-        }
-
-        public void setThirdPartySourceId(String thirdPartySourceId) {
-            ThirdPartySourceId = thirdPartySourceId;
-        }
-
-        public String getOurSourceId() {
-            return OurSourceId;
-        }
-
-        public void setOurSourceId(String ourSourceId) {
-            OurSourceId = ourSourceId;
-        }
-
-        public int getPayWay() {
-            return PayWay;
-        }
-
-        public void setPayWay(int payWay) {
-            PayWay = payWay;
-        }
-
-        public int getChannel() {
-            return Channel;
-        }
-
-        public void setChannel(int channel) {
-            Channel = channel;
-        }
-
-        public int getState() {
-            return State;
-        }
-
-        public void setState(int state) {
-            State = state;
+        public void setCreateTime(String CreateTime) {
+            this.CreateTime = CreateTime;
         }
     }
 }

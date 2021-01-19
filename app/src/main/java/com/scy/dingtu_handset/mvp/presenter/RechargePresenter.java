@@ -1,6 +1,7 @@
 package com.scy.dingtu_handset.mvp.presenter;
 
 import android.app.Application;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.jess.arms.di.scope.ActivityScope;
@@ -8,8 +9,13 @@ import com.jess.arms.http.imageloader.ImageLoader;
 import com.jess.arms.integration.AppManager;
 import com.jess.arms.mvp.BasePresenter;
 import com.scy.dingtu_handset.app.api.BaseResponse;
+import com.scy.dingtu_handset.app.entity.BaseResponseAddisOK;
 import com.scy.dingtu_handset.app.entity.CardInfoTo;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardRequest;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardResponse;
 import com.scy.dingtu_handset.app.entity.MoneyParam;
+import com.scy.dingtu_handset.app.entity.RefundRequest;
+import com.scy.dingtu_handset.app.entity.RefundResponse;
 import com.scy.dingtu_handset.app.entity.UserGetTo;
 import com.scy.dingtu_handset.app.utils.AudioUtils;
 import com.scy.dingtu_handset.app.utils.RxUtils;
@@ -60,35 +66,35 @@ public class RechargePresenter extends BasePresenter<RechargeContract.Model, Rec
         this.mApplication = null;
     }
 
-    public void userGetTo(int number) {
-        mModel.userGetTo(number)
+    public void deviceReadCard(int company, int id, DeviceReadCardRequest readCardRequest) {
+        mModel.deviceReadCard(company, id, readCardRequest)
                 .compose(RxUtils.applySchedulers(mRootView))
-                .subscribe(new Observer<BaseResponse<UserGetTo>>() {
+                .subscribe(new Observer<BaseResponseAddisOK<DeviceReadCardResponse>>() {
                     @Override
-                    public void onError(Throwable t) {
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override public void onNext(BaseResponseAddisOK<DeviceReadCardResponse> readCardToBaseResponse) {
+                        if (readCardToBaseResponse.getStatusCode()!=200){
+                            mRootView.showMessage(readCardToBaseResponse.getMessage());
+                        }else {
+                            if (readCardToBaseResponse.isSuccess())
+                                if (readCardToBaseResponse.getContent() != null)
+                                    mRootView.onReadCard(readCardToBaseResponse.getContent());
+                        }
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
                     }
 
                     @Override
                     public void onComplete() {
 
                     }
-
-                    @Override
-                    public void onSubscribe(Disposable d) {
-
-                    }
-
-                    @Override
-                    public void onNext(BaseResponse<UserGetTo> readCardToBaseResponse) {
-                        if (readCardToBaseResponse.getStatusCode() != 200) {
-                            mRootView.showMessage(readCardToBaseResponse.getMessage());
-                        } else {
-                            if (readCardToBaseResponse.isSuccess())
-                                if (readCardToBaseResponse.getContent() != null)
-                                    mRootView.onUserGetTo(readCardToBaseResponse.getContent());
-                        }
-                    }
-
                 });
     }
 
@@ -155,36 +161,30 @@ public class RechargePresenter extends BasePresenter<RechargeContract.Model, Rec
                 });
     }
 
-    public void onDeposit(MoneyParam param, int cardtype) {
-        mModel.addDeposit(param)
+    public void recharge(int company, int id, RefundRequest refundRequest) {
+        mModel.recharge(company, id, refundRequest)
                 .compose(RxUtils.applySchedulers(mRootView))
-                .subscribe(new Observer<BaseResponse>() {
+                .subscribe(new Observer<BaseResponseAddisOK<RefundResponse>>() {
                     @Override
                     public void onSubscribe(Disposable d) {
 
                     }
 
                     @Override
-                    public void onNext(BaseResponse baseResponse) {
+                    public void onNext(BaseResponseAddisOK<RefundResponse> baseResponse) {
                         if (baseResponse.getStatusCode() != 200) {
                             mRootView.showMessage(baseResponse.getMessage());
                         } else {
                             if (baseResponse.isSuccess())
                                 if (baseResponse.isResult()) {
-                                    userGetTo(param.getNumber());
-                                    if (cardtype == 1) {
-                                        AudioUtils.getInstance().speakText(String.format("充值%.2f元", param.getAmount()));
-                                    } else if (cardtype == 4) {
-                                        AudioUtils.getInstance().speakText("充值" + (int) param.getAmount() + "次");
-                                    }
-                                    Toasty.success(mApplication, "充值成功", Toast.LENGTH_SHORT, true).show();
+                                    mRootView.onRecharge(baseResponse.getContent());
                                 }
                         }
                     }
 
                     @Override
                     public void onError(Throwable e) {
-
+                        Log.e(TAG, "onError: " + e);
                     }
 
                     @Override

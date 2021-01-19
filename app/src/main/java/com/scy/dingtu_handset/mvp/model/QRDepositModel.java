@@ -8,8 +8,16 @@ import com.jess.arms.integration.IRepositoryManager;
 import com.jess.arms.mvp.BaseModel;
 import com.scy.dingtu_handset.app.api.UserService;
 import com.scy.dingtu_handset.app.api.BaseResponse;
+import com.scy.dingtu_handset.app.entity.BaseResponseAddisOK;
 import com.scy.dingtu_handset.app.entity.CardInfoTo;
+import com.scy.dingtu_handset.app.entity.CodeReadRequest;
+import com.scy.dingtu_handset.app.entity.CodeReadResponse;
+import com.scy.dingtu_handset.app.entity.CodeRechargeRequest;
+import com.scy.dingtu_handset.app.entity.CodeRechargeResponse;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardRequest;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardResponse;
 import com.scy.dingtu_handset.app.entity.QRDepositParam;
+import com.scy.dingtu_handset.app.entity.UserGetTo;
 import com.scy.dingtu_handset.mvp.contract.QRDepositContract;
 
 import javax.inject.Inject;
@@ -52,7 +60,18 @@ public class QRDepositModel extends BaseModel implements QRDepositContract.Model
         return mRepositoryManager.obtainRetrofitService(UserService.class).getByNumber(number);
     }
 
-    @Override public Observable<BaseResponse> getQRDeposit(QRDepositParam param) {
-        return mRepositoryManager.obtainRetrofitService(UserService.class).getQRDeposit(param);
+    @Override
+    public Observable<BaseResponseAddisOK<CodeRechargeResponse>> codeRecharge(int companyCode, int deviceID, CodeRechargeRequest codeRechargeRequest) {
+        return mRepositoryManager.obtainRetrofitService(UserService.class).codeRecharge(companyCode, deviceID, codeRechargeRequest);
+    }
+
+    @Override
+    public Observable<BaseResponseAddisOK<CodeReadResponse>> codeRead(int companyCode, int deviceID, CodeReadRequest codeReadRequest) {
+        return mRepositoryManager.obtainRetrofitService(UserService.class).codeRead(companyCode, deviceID, codeReadRequest);
+    }
+
+    @Override
+    public Observable<BaseResponseAddisOK<DeviceReadCardResponse>> deviceReadCard(int companyCode, int deviceID, DeviceReadCardRequest readCardRequest) {
+        return mRepositoryManager.obtainRetrofitService(UserService.class).deviceReadCard(companyCode, deviceID, readCardRequest);
     }
 }

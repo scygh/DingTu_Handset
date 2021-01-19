@@ -8,8 +8,13 @@ import com.jess.arms.integration.IRepositoryManager;
 import com.jess.arms.mvp.BaseModel;
 import com.scy.dingtu_handset.app.api.UserService;
 import com.scy.dingtu_handset.app.api.BaseResponse;
+import com.scy.dingtu_handset.app.entity.BaseResponseAddisOK;
 import com.scy.dingtu_handset.app.entity.CardInfoTo;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardRequest;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardResponse;
 import com.scy.dingtu_handset.app.entity.MoneyParam;
+import com.scy.dingtu_handset.app.entity.RefundRequest;
+import com.scy.dingtu_handset.app.entity.RefundResponse;
 import com.scy.dingtu_handset.app.entity.UserGetTo;
 import com.scy.dingtu_handset.mvp.contract.RechargeContract;
 
@@ -65,7 +70,12 @@ public class RechargeModel extends BaseModel implements RechargeContract.Model {
     }
 
     @Override
-    public Observable<BaseResponse<UserGetTo>> userGetTo(int number) {
-        return mRepositoryManager.obtainRetrofitService(UserService.class).userGetTo(number, false);
+    public Observable<BaseResponseAddisOK<RefundResponse>> recharge(int companyCode, int deviceID, RefundRequest refundRequest) {
+        return mRepositoryManager.obtainRetrofitService(UserService.class).recharge(companyCode, deviceID, refundRequest);
+    }
+
+    @Override
+    public Observable<BaseResponseAddisOK<DeviceReadCardResponse>> deviceReadCard(int companyCode, int deviceID, DeviceReadCardRequest readCardRequest) {
+        return mRepositoryManager.obtainRetrofitService(UserService.class).deviceReadCard(companyCode, deviceID, readCardRequest);
     }
 }

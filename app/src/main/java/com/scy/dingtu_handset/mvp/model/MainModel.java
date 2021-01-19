@@ -8,6 +8,7 @@ import com.jess.arms.integration.IRepositoryManager;
 import com.jess.arms.mvp.BaseModel;
 import com.scy.dingtu_handset.app.api.UserService;
 import com.scy.dingtu_handset.app.api.BaseResponse;
+import com.scy.dingtu_handset.app.entity.BaseResponseAddisOK;
 import com.scy.dingtu_handset.app.entity.RoleTo;
 import com.scy.dingtu_handset.mvp.contract.MainContract;
 
@@ -47,7 +48,7 @@ public class MainModel extends BaseModel implements MainContract.Model {
         this.mApplication = null;
     }
     @Override
-    public Observable<BaseResponse<RoleTo>> getRole(String userId) {
+    public Observable<BaseResponseAddisOK<RoleTo>> getRole(String userId) {
         return mRepositoryManager.obtainRetrofitService(UserService.class).getRole(userId);
     }
 }

@@ -3,9 +3,11 @@ package com.scy.dingtu_handset.mvp.contract;
 import com.jess.arms.mvp.IModel;
 import com.jess.arms.mvp.IView;
 import com.scy.dingtu_handset.app.api.BaseResponse;
+import com.scy.dingtu_handset.app.entity.BaseResponseAddisOK;
 import com.scy.dingtu_handset.app.entity.CardInfoTo;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardRequest;
 import com.scy.dingtu_handset.app.entity.KeySwitchTo;
-import com.scy.dingtu_handset.app.entity.ReadCardTo;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardResponse;
 import com.scy.dingtu_handset.app.entity.SimpleExpenseParam;
 import com.scy.dingtu_handset.app.entity.SimpleExpenseTo;
 
@@ -37,7 +39,7 @@ public interface ManualContract {
 
         void creatBill2(boolean isOpen);
 
-        void onReadCard(ReadCardTo readCardTo);
+        void onReadCard(DeviceReadCardResponse readCardTo);
 
         void onFailed();    }
 
@@ -45,12 +47,12 @@ public interface ManualContract {
     interface Model extends IModel {
         Observable<BaseResponse<CardInfoTo>> getByNumber(int number);
 
-        Observable<BaseResponse<SimpleExpenseTo>> createSimpleExpense(SimpleExpenseParam param);
+        Observable<BaseResponse<SimpleExpenseTo>> createSimpleExpense(int companyCode, int deviceID,SimpleExpenseParam param);
 
         Observable<BaseResponse<String>> getPayKeySwitch(String key);
 
         Observable<BaseResponse<KeySwitchTo>> getEMDevice(int id);
 
-        Observable<BaseResponse<ReadCardTo>> addReadCard(int companyCode, int deviceID, int number);
+        Observable<BaseResponseAddisOK<DeviceReadCardResponse>> deviceReadCard(int companyCode, int deviceID,  DeviceReadCardRequest readCardRequest);
     }
 }

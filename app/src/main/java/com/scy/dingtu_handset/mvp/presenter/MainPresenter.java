@@ -8,11 +8,14 @@ import com.jess.arms.http.imageloader.ImageLoader;
 import com.jess.arms.integration.AppManager;
 import com.jess.arms.mvp.BasePresenter;
 import com.jess.arms.utils.RxLifecycleUtils;
+import com.scy.dingtu_handset.app.entity.BaseResponseAddisOK;
 import com.scy.dingtu_handset.app.utils.SpUtils;
 import com.scy.dingtu_handset.app.api.AppConstant;
 import com.scy.dingtu_handset.app.api.BaseResponse;
 import com.scy.dingtu_handset.app.entity.RoleTo;
 import com.scy.dingtu_handset.mvp.contract.MainContract;
+
+import java.util.ArrayList;
 
 import javax.inject.Inject;
 
@@ -60,20 +63,21 @@ public class MainPresenter extends BasePresenter<MainContract.Model, MainContrac
     }
 
     public void getRole() {
-        String userId = (String) SpUtils.get(mApplication, AppConstant.Api.USERID,"");
-        if (userId.isEmpty())return;
-        Log.e(TAG, "getRole: ----------------------------" );
+        String userId = (String) SpUtils.get(mApplication, AppConstant.Api.USERID, "");
+        if (userId.isEmpty()) return;
+        Log.e(TAG, "getRole: ----------------------------");
         mModel.getRole(userId)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doAfterTerminate(() -> mRootView.hideLoading())
                 .compose(RxLifecycleUtils.bindToLifecycle(mRootView))
-                .subscribe(new ErrorHandleSubscriber<BaseResponse<RoleTo>>(mErrorHandler) {
+                .subscribe(new ErrorHandleSubscriber<BaseResponseAddisOK<RoleTo>>(mErrorHandler) {
                     @Override
-                    public void onNext(BaseResponse<RoleTo> roleToBaseResponse) {
+                    public void onNext(BaseResponseAddisOK<RoleTo> roleToBaseResponse) {
                         if (roleToBaseResponse.isSuccess()) {
-                            String module = roleToBaseResponse.getContent().getModules();
-                            String[] modules = module.split(",");
+                            ArrayList<String> modules = new ArrayList<>();
+                            modules.clear();
+                            modules.addAll(roleToBaseResponse.getContent().getModules());
                             SpUtils.put(mApplication, AppConstant.Api.BLOCK_USER, false);
                             SpUtils.put(mApplication, AppConstant.Api.BLOCK_REPORT, false);
                             SpUtils.put(mApplication, AppConstant.Api.BLOCK_SETUP, false);

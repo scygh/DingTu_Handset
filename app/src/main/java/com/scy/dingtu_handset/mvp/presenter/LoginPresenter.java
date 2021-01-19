@@ -96,7 +96,7 @@ public class LoginPresenter extends BasePresenter<LoginContract.Model, LoginCont
                             if (userInfoToBaseResponse.isSuccess()) {
                                 if (userInfoToBaseResponse.getContent() != null) {
                                     SpUtils.put(mApplication, AppConstant.Api.TOKEN, userInfoToBaseResponse.getContent().getAccessToken());
-                                    SpUtils.put(mApplication, AppConstant.Api.USERID, userInfoToBaseResponse.getContent().getUserID());
+                                    SpUtils.put(mApplication, AppConstant.Api.USERID, userInfoToBaseResponse.getContent().getUserId());
                                     getCardPwd(userInfoToBaseResponse.getContent());
                                 }
                             }

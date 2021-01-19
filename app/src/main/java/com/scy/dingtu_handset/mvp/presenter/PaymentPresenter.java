@@ -8,6 +8,12 @@ import com.jess.arms.http.imageloader.ImageLoader;
 import com.jess.arms.integration.AppManager;
 import com.jess.arms.mvp.BasePresenter;
 import com.jess.arms.utils.RxLifecycleUtils;
+import com.scy.dingtu_handset.app.entity.BaseResponseAddisOK;
+import com.scy.dingtu_handset.app.entity.CodeExpenseRequest;
+import com.scy.dingtu_handset.app.entity.CodeExpenseResponse;
+import com.scy.dingtu_handset.app.entity.CodeReadRequest;
+import com.scy.dingtu_handset.app.entity.CodeReadResponse;
+import com.scy.dingtu_handset.app.utils.RxUtils;
 import com.scy.dingtu_handset.app.utils.SpUtils;
 import com.scy.dingtu_handset.app.api.AppConstant;
 import com.scy.dingtu_handset.app.api.BaseResponse;
@@ -64,68 +70,45 @@ public class PaymentPresenter extends BasePresenter<PaymentContract.Model, Payme
         this.mApplication = null;
     }
 
-    public void onScanQR(String str, double dou, ArrayList<QRExpenseParam.ListGoodsBean> listGoodsBeans) {
-        String deviceID = (String) SpUtils.get(mApplication, AppConstant.Receipt.NO, "");
-        int id = Integer.valueOf(TextUtils.isEmpty(deviceID) ? "1" : deviceID);
-        mModel.getQRRead(str, id)
-                .subscribeOn(Schedulers.io())
-                .doOnSubscribe(disposable -> mRootView.showLoading())
-                .subscribeOn(AndroidSchedulers.mainThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .compose(RxLifecycleUtils.bindToLifecycle(mRootView))
-                .subscribe(new Observer<BaseResponse<QRReadTo>>() {
-                    @Override
-                    public void onError(Throwable t) {
-                        mRootView.hideLoading();
-                        mRootView.onPayFailure();
-                    }
-
-                    @Override
-                    public void onComplete() {
-
-                    }
-
+    public void codeRead(int company, int id, CodeReadRequest codeReadRequest) {
+        mModel.codeRead(company, id, codeReadRequest)
+                .compose(RxUtils.applySchedulers(mRootView))
+                .subscribe(new Observer<BaseResponseAddisOK<CodeReadResponse>>() {
                     @Override
                     public void onSubscribe(Disposable d) {
 
                     }
 
                     @Override
-                    public void onNext(BaseResponse<QRReadTo> qrReadToBaseResponse) {
-                        if (qrReadToBaseResponse.getStatusCode() != 200) {
-                            mRootView.showMessage(qrReadToBaseResponse.getMessage());
-                            mRootView.onPayFailure();
+                    public void onNext(BaseResponseAddisOK<CodeReadResponse> cardInfoToBaseResponse) {
+                        if (cardInfoToBaseResponse.getStatusCode() != 200) {
+                            mRootView.showMessage(cardInfoToBaseResponse.getMessage());
                         } else {
-                            if (qrReadToBaseResponse.isSuccess()) {
-                                QRExpenseParam param = new QRExpenseParam();
-                                param.setQRContent(str);
-                                param.setNumber(qrReadToBaseResponse.getContent().getNumber());
-                                param.setAmount(dou);
-                                if (listGoodsBeans != null && listGoodsBeans.size() > 0) {
-                                    param.setPattern(4);
-                                    param.setListGoods(listGoodsBeans);
-                                } else {
-                                    param.setPattern(1);
-                                }
-                                param.setPayCount(qrReadToBaseResponse.getContent().getPayCount());
-                                param.setDeviceID(id);
-                                param.setDeviceType(2);
-                                param.setQRType(qrReadToBaseResponse.getContent().getQRType());
-                                onExpenseQR(param);
-                            }
+                            if (cardInfoToBaseResponse.isSuccess())
+                                if (cardInfoToBaseResponse.getContent() != null)
+                                    mRootView.onCodeRead(cardInfoToBaseResponse.getContent());
                         }
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
 
                     }
                 });
     }
 
-    private void onExpenseQR(QRExpenseParam param) {
-        mModel.addQRExpense(param)
+    public void codeExpense(int company, int id, CodeExpenseRequest codeExpenseRequest) {
+        mModel.codeExpense(company, id, codeExpenseRequest)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doAfterTerminate(() -> mRootView.hideLoading())
                 .compose(RxLifecycleUtils.bindToLifecycle(mRootView))
-                .subscribe(new Observer<BaseResponse<QRExpenseTo>>() {
+                .subscribe(new Observer<BaseResponseAddisOK<CodeExpenseResponse>>() {
                     @Override
                     public void onError(Throwable t) {
                         mRootView.onPayFailure();
@@ -142,14 +125,14 @@ public class PaymentPresenter extends BasePresenter<PaymentContract.Model, Payme
                     }
 
                     @Override
-                    public void onNext(BaseResponse<QRExpenseTo> qrExpenseToBaseResponse) {
-                        if (qrExpenseToBaseResponse.getStatusCode() != 200) {
-                            mRootView.showMessage(qrExpenseToBaseResponse.getMessage());
+                    public void onNext(BaseResponseAddisOK<CodeExpenseResponse> codeExpenseResponse) {
+                        if (codeExpenseResponse.getStatusCode() != 200) {
+                            mRootView.showMessage(codeExpenseResponse.getMessage());
                             mRootView.onPayFailure();
 
                         } else {
-                            if (qrExpenseToBaseResponse.isSuccess())
-                                mRootView.onPaySuccess(qrExpenseToBaseResponse.getContent());
+                            if (codeExpenseResponse.isSuccess())
+                                mRootView.onPaySuccess(codeExpenseResponse.getContent());
                         }
 
                     }

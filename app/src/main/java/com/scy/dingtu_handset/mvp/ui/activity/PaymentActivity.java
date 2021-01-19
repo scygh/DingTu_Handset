@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.widget.CardView;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LayoutAnimationController;
@@ -18,8 +19,15 @@ import com.jess.arms.base.BaseActivity;
 import com.jess.arms.di.component.AppComponent;
 import com.jess.arms.utils.ArmsUtils;
 import com.scy.dingtu_handset.R;
+import com.scy.dingtu_handset.app.api.AppConstant;
+import com.scy.dingtu_handset.app.configuration.UserInfoHelper;
+import com.scy.dingtu_handset.app.entity.CodeExpenseRequest;
+import com.scy.dingtu_handset.app.entity.CodeExpenseResponse;
+import com.scy.dingtu_handset.app.entity.CodeReadRequest;
+import com.scy.dingtu_handset.app.entity.CodeReadResponse;
 import com.scy.dingtu_handset.app.entity.QRExpenseParam;
 import com.scy.dingtu_handset.app.entity.QRExpenseTo;
+import com.scy.dingtu_handset.app.utils.SpUtils;
 import com.scy.dingtu_handset.di.component.DaggerPaymentComponent;
 import com.scy.dingtu_handset.mvp.contract.PaymentContract;
 import com.scy.dingtu_handset.mvp.presenter.PaymentPresenter;
@@ -56,17 +64,35 @@ public class PaymentActivity extends BaseActivity<PaymentPresenter> implements P
     TextView retry;
     @BindView(R.id.cardview1)
     CardView cardview1;
-    @BindView(R.id.time) TextView time;
-    @BindView(R.id.cardview2) CardView cardview2;
-    @BindView(R.id.name) TextView name;
-    @BindView(R.id.type) TextView type;
-    @BindView(R.id.number) TextView number;
-    @BindView(R.id.balance) TextView balance;
-    @BindView(R.id.serial_number) TextView serialNumber;
-    @BindView(R.id.cardview3) CardView cardview3;
-    @BindView(R.id.ll_content) LinearLayout llContent;
-    @BindView(R.id.ll) LinearLayout ll;
-    @BindView(R.id.balance_hui) TextView balanceHui;
+    @BindView(R.id.time)
+    TextView time;
+    @BindView(R.id.cardview2)
+    CardView cardview2;
+    @BindView(R.id.name)
+    TextView name;
+    @BindView(R.id.type)
+    TextView type;
+    @BindView(R.id.number)
+    TextView number;
+    @BindView(R.id.balance)
+    TextView balance;
+    @BindView(R.id.serial_number)
+    TextView serialNumber;
+    @BindView(R.id.cardview3)
+    CardView cardview3;
+    @BindView(R.id.ll_content)
+    LinearLayout llContent;
+    @BindView(R.id.ll)
+    LinearLayout ll;
+    @BindView(R.id.balance_hui)
+    TextView balanceHui;
+    String str;
+    double dou;
+    int company = 0;
+    int device = 0;
+    ArrayList<CodeExpenseRequest.GoodsDetailsBean> listGoodsBeans;
+
+
     @Override
     public void setupActivityComponent(@NonNull AppComponent appComponent) {
         DaggerPaymentComponent //如找不到该类,请编译一下项目
@@ -85,10 +111,15 @@ public class PaymentActivity extends BaseActivity<PaymentPresenter> implements P
     @Override
     public void initData(@Nullable Bundle savedInstanceState) {
         this.setTitle("支付结果页");
-        String str = getIntent().getStringExtra("content");
-        double dou = getIntent().getDoubleExtra("amount", 0);
-        ArrayList<QRExpenseParam.ListGoodsBean> listGoodsBeans = getIntent().getParcelableArrayListExtra("ListGoods");
-        mPresenter.onScanQR(str, dou,listGoodsBeans);
+        str = getIntent().getStringExtra("content");
+        dou = getIntent().getDoubleExtra("amount", 0);
+        listGoodsBeans = getIntent().getParcelableArrayListExtra("ListGoods");
+        CodeReadRequest readRequest = new CodeReadRequest();
+        readRequest.setCodeContent(str);
+        company = UserInfoHelper.getInstance(this).getCode();//得到全局用户信息单例，拿到CompanyCode 在用户登录成功时就已经复值了
+        String _device = (String) SpUtils.get(this, AppConstant.Receipt.NO, "");
+        device = Integer.valueOf(TextUtils.isEmpty(_device) ? "1" : _device);//拿到机器号
+        mPresenter.codeRead(company, device, readRequest);
     }
 
     @Override
@@ -124,30 +155,47 @@ public class PaymentActivity extends BaseActivity<PaymentPresenter> implements P
     public void killMyself() {
         finish();
     }
-    @Override public void onPaySuccess(QRExpenseTo qrExpenseTo) {
-        if (qrExpenseTo.getThirdPartyExpense()!=null){
-            time.setText("支付时间 " + qrExpenseTo.getThirdPartyExpense().getCreateTime());
-            name.setText("订单号 " + qrExpenseTo.getThirdPartyExpense().getOurSourceId());
-            if (qrExpenseTo.getQRType() == 1)
+
+    @Override
+    public void onCodeRead(CodeReadResponse codeReadResponse) {
+        CodeExpenseRequest param = new CodeExpenseRequest();
+        param.setCodeContent(str);
+        if (codeReadResponse.getCard() != null) {
+            param.setNumber(codeReadResponse.getCard().getNumber());
+        }
+        param.setAmount(dou);
+        if (listGoodsBeans != null && listGoodsBeans.size() > 0) {
+            param.setPattern(4);
+            param.setGoodsDetails(listGoodsBeans);
+        } else {
+            param.setPattern(1);
+        }
+        param.setPayCount(codeReadResponse.getNextPayCount());
+        mPresenter.codeExpense(company, device, param);
+    }
+
+    @Override
+    public void onPaySuccess(CodeExpenseResponse codeExpenseResponse) {
+        if (codeExpenseResponse.getThirdPartyExpenseDetail() != null) {
+            time.setText("支付时间 " + codeExpenseResponse.getThirdPartyExpenseDetail().getCreateTime());
+            name.setText("订单号 " + codeExpenseResponse.getThirdPartyExpenseDetail().getOurSourceId());
+            if (codeExpenseResponse.getCodeType() == 1)
                 number.setText("支付方式：微信支付");
-            if (qrExpenseTo.getQRType() == 2)
+            if (codeExpenseResponse.getCodeType() == 2)
                 number.setText("支付方式：支付宝支付");
-            balance.setText(String.format("￥ %.2f", qrExpenseTo.getThirdPartyExpense().getAmount()));
-            serialNumber.setText(qrExpenseTo.getThirdPartyExpense().getId());
+            balance.setText(String.format("￥ %.2f", codeExpenseResponse.getThirdPartyExpenseDetail().getAmount()));
+            serialNumber.setText(codeExpenseResponse.getThirdPartyExpenseDetail().getId());
             balanceHui.setVisibility(View.GONE);
-        }else if (qrExpenseTo.getExpenseDetail()!=null){
-            time.setText("支付时间 " + qrExpenseTo.getExpenseDetail().getCreateTime());
-            name.setText("原价 " + String.format("￥ %.2f", qrExpenseTo.getExpenseDetail().getOriginalAmount()));
+        } else if (codeExpenseResponse.getExpenseDetail() != null) {
+            time.setText("支付时间 " + codeExpenseResponse.getExpenseDetail().getCreateTime());
+            name.setText("原价 " + String.format("￥ %.2f", codeExpenseResponse.getExpenseDetail().getOriginalAmount()));
             number.setText("支付方式：会员码支付");
-            balance.setText(String.format("￥ %.2f", qrExpenseTo.getExpenseDetail().getAmount()));
-            balanceHui.setText("余额 "+qrExpenseTo.getExpenseDetail().getBalance()+"元");
+            balance.setText(String.format("￥ %.2f", codeExpenseResponse.getExpenseDetail().getAmount()));
+            balanceHui.setText("余额 " + codeExpenseResponse.getExpenseDetail().getBalance() + "元");
             serialNumber.setVisibility(View.GONE);
             ll.setVisibility(View.GONE);
 
         }
-
-
-
         cardview1.setVisibility(View.GONE);
         cardview2.setVisibility(View.VISIBLE);
         cardview3.setVisibility(View.VISIBLE);
@@ -158,7 +206,8 @@ public class PaymentActivity extends BaseActivity<PaymentPresenter> implements P
         cardview3.scheduleLayoutAnimation();
     }
 
-    @Override public void onPayFailure() {
+    @Override
+    public void onPayFailure() {
         cardview1.setVisibility(View.VISIBLE);
         cardview2.setVisibility(View.GONE);
         cardview3.setVisibility(View.GONE);
@@ -168,7 +217,8 @@ public class PaymentActivity extends BaseActivity<PaymentPresenter> implements P
     }
 
 
-    @OnClick({R.id.retry, R.id.confirm}) public void onViewClicked(View view) {
+    @OnClick({R.id.retry, R.id.confirm})
+    public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.retry:
                 onBackPressed();

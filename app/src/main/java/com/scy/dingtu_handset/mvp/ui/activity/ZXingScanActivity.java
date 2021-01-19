@@ -8,9 +8,9 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.scy.dingtu_handset.R;
+import com.scy.dingtu_handset.app.scanqrcode.QRCodeView;
+import com.scy.dingtu_handset.app.scanqrcode.ZXingView;
 
-import cn.bingoogolapple.qrcode.core.QRCodeView;
-import cn.bingoogolapple.qrcode.zxing.ZXingView;
 
 public class ZXingScanActivity extends AppCompatActivity {
 
@@ -42,10 +42,21 @@ public class ZXingScanActivity extends AppCompatActivity {
 
             @Override
             public void onCameraAmbientBrightnessChanged(boolean isDark) {
-
+// 这里是通过修改提示文案来展示环境是否过暗的状态，接入方也可以根据 isDark 的值来实现其他交互效果
+                String tipText = mQRCodeView.getScanBoxView().getTipText();
+                String ambientBrightnessTip = "\n环境过暗，请打开闪光灯";
+                if (isDark) {
+                    if (!tipText.contains(ambientBrightnessTip)) {
+                        mQRCodeView.getScanBoxView().setTipText(tipText + ambientBrightnessTip);
+                    }
+                } else {
+                    if (tipText.contains(ambientBrightnessTip)) {
+                        tipText = tipText.substring(0, tipText.indexOf(ambientBrightnessTip));
+                        mQRCodeView.getScanBoxView().setTipText(tipText);
+                    }
+                }
             }
         });
-        mQRCodeView.startSpot();
     }
 
     @Override
@@ -54,7 +65,9 @@ public class ZXingScanActivity extends AppCompatActivity {
         mQRCodeView.startCamera();
         //强制手机摄像头镜头朝向前边
         //mQRCodeView.startCamera(Camera.CameraInfo.CAMERA_FACING_FRONT);
-        mQRCodeView.showScanRect(); //显示扫描方框
+        //mQRCodeView.hiddenScanRect();
+        mQRCodeView.startSpot();
+        mQRCodeView.getScanBoxView().setOnlyDecodeScanBoxArea(false);
     }
 
     @Override

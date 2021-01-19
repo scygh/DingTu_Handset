@@ -17,6 +17,7 @@ import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.style.AbsoluteSizeSpan;
 import android.util.Log;
+import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LayoutAnimationController;
@@ -34,7 +35,14 @@ import com.scy.dingtu_handset.app.api.AppConstant;
 import com.scy.dingtu_handset.app.configuration.UserInfoHelper;
 import com.scy.dingtu_handset.app.entity.CardInfoBean;
 import com.scy.dingtu_handset.app.entity.CardInfoTo;
+import com.scy.dingtu_handset.app.entity.CodeReadRequest;
+import com.scy.dingtu_handset.app.entity.CodeReadResponse;
+import com.scy.dingtu_handset.app.entity.CodeRechargeRequest;
+import com.scy.dingtu_handset.app.entity.CodeRechargeResponse;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardRequest;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardResponse;
 import com.scy.dingtu_handset.app.entity.QRDepositParam;
+import com.scy.dingtu_handset.app.entity.UserGetTo;
 import com.scy.dingtu_handset.app.listening.RFCardListening;
 import com.scy.dingtu_handset.app.nfc.NfcJellyBeanActivity;
 import com.scy.dingtu_handset.app.utils.AntiShake;
@@ -43,13 +51,16 @@ import com.scy.dingtu_handset.app.utils.ShakeAnimation;
 import com.scy.dingtu_handset.app.utils.SpUtils;
 import com.scy.dingtu_handset.app.utils.card.Commands;
 import com.scy.dingtu_handset.app.utils.card.ReadCardUtils;
+import com.scy.dingtu_handset.app.utils.card.SoundTool;
 import com.scy.dingtu_handset.di.component.DaggerQRDepositComponent;
 import com.scy.dingtu_handset.mvp.contract.QRDepositContract;
 import com.scy.dingtu_handset.mvp.presenter.QRDepositPresenter;
 import com.scy.dingtu_handset.mvp.ui.widget.LoadDialog;
 import com.scy.dingtu_handset.mvp.ui.widget.label.LabelRelativeLayout;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
@@ -98,7 +109,7 @@ public class QRDepositActivity extends NfcJellyBeanActivity<QRDepositPresenter> 
     @BindView(R.id.label_rl)
     LabelRelativeLayout labelRelativeLayout;
     CardInfoBean mCardInfoBean;
-    CardInfoTo mCardInfoTo;
+    DeviceReadCardResponse mCardInfoTo;
     @BindView(R.id.cardtype)
     TextView cardtype;
     @BindView(R.id.cardcount)
@@ -106,6 +117,15 @@ public class QRDepositActivity extends NfcJellyBeanActivity<QRDepositPresenter> 
     private ReadCardUtils readCardUtils;
     private boolean isFirst = true;
     private String key;
+    private DeviceReadCardRequest deviceReadRequest;
+    int company = 0;
+    int device = 0;
+
+    List<DeviceReadCardResponse.FinancesBean> flist = new ArrayList<>();
+    String fcash;
+    String fsubsidy;
+    int ftimes;
+    String fdonate;
 
     @Override
     public void setupActivityComponent(@NonNull AppComponent appComponent) {
@@ -134,6 +154,9 @@ public class QRDepositActivity extends NfcJellyBeanActivity<QRDepositPresenter> 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             initCardInfoReceived();//设置接收卡的循环
         }
+        company = UserInfoHelper.getInstance(this).getCode();//得到全局用户信息单例，拿到CompanyCode 在用户登录成功时就已经复值了
+        String _device = (String) SpUtils.get(this, AppConstant.Receipt.NO, "");
+        device = Integer.valueOf(TextUtils.isEmpty(_device) ? "1" : _device);//拿到机器号
     }
 
     /**
@@ -172,7 +195,9 @@ public class QRDepositActivity extends NfcJellyBeanActivity<QRDepositPresenter> 
                 if (!isFirst) {
                     return;
                 }
-                mPresenter.getCardInfo(mCardInfoBean.getNum());
+                SoundTool.getMySound(QRDepositActivity.this).playMusic("success");//播放音频
+                deviceReadRequest = new DeviceReadCardRequest(mCardInfoBean.getNum());
+                mPresenter.deviceReadCard(company, device, deviceReadRequest);//请求接口去消费
                 confirm.setEnabled(true);
                 confirm.setText("扫码充值");
             }
@@ -220,7 +245,8 @@ public class QRDepositActivity extends NfcJellyBeanActivity<QRDepositPresenter> 
                     return;
                 }
             }
-            mPresenter.getCardInfo(mCardInfoBean.getNum());
+            deviceReadRequest = new DeviceReadCardRequest(mCardInfoBean.getNum());
+            mPresenter.deviceReadCard(company, device, deviceReadRequest);//请求接口去消费
             confirm.setEnabled(true);
             confirm.setText("扫码充值");
         } else {
@@ -270,23 +296,110 @@ public class QRDepositActivity extends NfcJellyBeanActivity<QRDepositPresenter> 
     }
 
     @Override
-    public void onCardInfo(CardInfoTo cardInfoTo) {
+    public void onReadCard(DeviceReadCardResponse content) {
+        flist.clear();
+        flist.addAll(content.getFinances());
+        for (DeviceReadCardResponse.FinancesBean financesBean : flist) {
+            if (financesBean.getKind() == 0) {
+                fcash = String.format("￥%.2f", financesBean.getBalance());
+            } else if (financesBean.getKind() == 1) {
+                fsubsidy = String.format("%.2f", financesBean.getBalance());
+            } else if (financesBean.getKind() == 2) {
+                ftimes = (int) financesBean.getBalance();
+            } else if (financesBean.getKind() == 3) {
+                fdonate = String.format("%.2f", financesBean.getBalance());
+            } else if (financesBean.getKind() == 4) {
+
+            }
+        }
         isFirst = false;
-        mCardInfoTo = cardInfoTo;
-        name.setText(cardInfoTo.getName());
-        number.setText("NO." + cardInfoTo.getSerialNo());
-        String amount = String.format("￥%.2f", cardInfoTo.getCash());
+        mCardInfoTo = content;
+        name.setText(content.getUser().getName());
+        number.setText("NO." + content.getCard().getSerialNo());
+
+        int type = content.getCard().getType();
+        if (type == 2 || type == 3 || type == 4) {
+            cardtype.setText("计次卡");
+            cardcount.setText(ftimes + "次");
+            balance.setText(ftimes + "");
+        } else {
+            cardtype.setText("正常卡");
+            SpannableStringBuilder builder = new SpannableStringBuilder(fcash);
+            builder.setSpan(new AbsoluteSizeSpan(ArmsUtils.sp2px(this, 24)), fcash.indexOf("￥"), fcash.indexOf("￥") + 1
+                    , Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            builder.setSpan(new AbsoluteSizeSpan(ArmsUtils.sp2px(this, 24)), fcash.indexOf("."), fcash.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            balance.setText(builder);
+            donate.setText(fdonate);
+            subsidies.setText(fsubsidy);
+        }
+        String value;
+        switch (content.getUser().getState()) {
+            case 0:
+                value = "未开户";
+                break;
+            case 1:
+                value = "正常";
+                break;
+            case 2:
+                value = "已挂失";
+                break;
+            case 3:
+                value = "已注销";
+                break;
+            case 4:
+                value = "未审核";
+                break;
+            case 5:
+                value = "审核失败";
+                break;
+            default:
+                value = "";
+                break;
+        }
+        labelRelativeLayout.setTextContent(value);
+        ObjectAnimator nopeAnimator = ShakeAnimation.nope(cardview1);
+        nopeAnimator.setRepeatCount(ValueAnimator.INFINITE);
+        nopeAnimator.start();
+        Flowable.just(1)
+                .delay(500, TimeUnit.MILLISECONDS)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<Integer>() {
+                    @Override
+                    public void accept(Integer integer) throws Exception {
+                        nopeAnimator.end();
+                    }
+                });
+    }
+
+
+    @Override
+    public void onCodeRecharge(CodeRechargeResponse rechargeResponse) {
+        AudioUtils.getInstance().speakText("充值成功");
+        mPresenter.deviceReadCard(company, device, deviceReadRequest);//请求接口去消费
+    }
+
+    @Override
+    public void onCodeRead(CodeReadResponse cardInfoTo) {
+        isFirst = false;
+        name.setText(cardInfoTo.getUser().getName());
+        number.setText("NO." + cardInfoTo.getCard().getSerialNo());
+        String amount = String.format("￥%.2f", cardInfoTo.getFinances().get(0).getBalance());
         SpannableStringBuilder builder = new SpannableStringBuilder(amount);
         builder.setSpan(new AbsoluteSizeSpan(ArmsUtils.sp2px(this, 24)), amount.indexOf("￥"), amount.indexOf("￥") + 1
                 , Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         builder.setSpan(new AbsoluteSizeSpan(ArmsUtils.sp2px(this, 24)), amount.indexOf("."), amount.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        cardtype.setText(cardInfoTo.getCardTypeName());
-        cardcount.setText(cardInfoTo.getTimes() + "次");
+        int type = cardInfoTo.getCard().getType();
+        if (type == 2 || type == 3 || type == 4) {
+            cardtype.setText("计次卡");
+        } else {
+            cardtype.setText("正常卡");
+        }
+        cardcount.setText(cardInfoTo.getFinances().get(2).getBalance() + "次");
         balance.setText(builder);
-        donate.setText(String.format("%.2f", cardInfoTo.getDonate()));
-        subsidies.setText(String.format("%.2f", cardInfoTo.getSubsidy()));
+        donate.setText(String.format("%.2f", cardInfoTo.getFinances().get(3).getBalance()));
+        subsidies.setText(String.format("%.2f", cardInfoTo.getFinances().get(1).getBalance()));
         String value;
-        switch (cardInfoTo.getUserState()) {
+        switch (cardInfoTo.getState()) {
             case 0:
                 value = "未开户";
                 break;
@@ -344,13 +457,11 @@ public class QRDepositActivity extends NfcJellyBeanActivity<QRDepositPresenter> 
                 Log.e(TAG, "onActivityResult: " + isbn);
                 if (!TextUtils.isEmpty(isbn)) {
                     //todo something
-                    QRDepositParam param = new QRDepositParam();
-                    param.setQRContent(isbn);
+                    CodeRechargeRequest param = new CodeRechargeRequest();
+                    param.setCodeContent(isbn);
                     param.setAmount(Double.valueOf(cost.getText().toString().trim()));
-                    param.setNumber(mCardInfoTo.getNumber());
-                    String deviceID = (String) SpUtils.get(QRDepositActivity.this, AppConstant.Receipt.NO, "");
-                    param.setDeviceID(Integer.valueOf(TextUtils.isEmpty(deviceID) ? "1" : deviceID));
-                    mPresenter.getQRDposit(param);
+                    param.setNumber(mCardInfoTo.getCard().getNumber());
+                    mPresenter.codeRecharge(company, device, param);
                 }
             }
         }

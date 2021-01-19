@@ -8,12 +8,13 @@ import com.jess.arms.di.scope.ActivityScope;
 import com.jess.arms.http.imageloader.ImageLoader;
 import com.jess.arms.integration.AppManager;
 import com.jess.arms.mvp.BasePresenter;
+import com.scy.dingtu_handset.app.entity.BaseResponseAddisOK;
 import com.scy.dingtu_handset.app.entity.UserGetTo;
 import com.scy.dingtu_handset.app.utils.RxUtils;
 import com.scy.dingtu_handset.app.api.BaseResponse;
 import com.scy.dingtu_handset.app.entity.CardInfoTo;
 import com.scy.dingtu_handset.app.entity.MoneyParam;
-import com.scy.dingtu_handset.app.entity.ReadCardTo;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardResponse;
 import com.scy.dingtu_handset.mvp.contract.CloseContract;
 
 import javax.inject.Inject;
@@ -86,40 +87,6 @@ public class ClosePresenter extends BasePresenter<CloseContract.Model, CloseCont
                             if (readCardToBaseResponse.isSuccess())
                                 if (readCardToBaseResponse.getContent() != null)
                                     mRootView.onUserGetTo(readCardToBaseResponse.getContent());
-                        }
-                    }
-
-                });
-    }
-
-    public void readtCardInfo(int company, int id, int number) {
-        mModel.addReadCard(company, id, number)
-                .compose(RxUtils.applySchedulers(mRootView))
-                .subscribe(new Observer<BaseResponse<ReadCardTo>>() {
-                    @Override
-                    public void onError(Throwable t) {
-                    }
-
-                    @Override
-                    public void onComplete() {
-
-                    }
-
-                    @Override
-                    public void onSubscribe(Disposable d) {
-
-                    }
-
-                    @Override
-                    public void onNext(BaseResponse<ReadCardTo> readCardToBaseResponse) {
-                        Log.e(TAG, "onNext: " + JSON.toJSONString(readCardToBaseResponse));
-
-                        if (readCardToBaseResponse.getStatusCode() != 200) {
-                            mRootView.showMessage(readCardToBaseResponse.getMessage());
-                        } else {
-                            if (readCardToBaseResponse.isSuccess())
-                                if (readCardToBaseResponse.getContent() != null)
-                                    mRootView.onReadCard(readCardToBaseResponse.getContent());
                         }
                     }
 

@@ -37,8 +37,8 @@ import com.scy.dingtu_handset.mvp.presenter.StepTwoPresenter;
 import com.scy.dingtu_handset.mvp.ui.widget.LoadDialog;
 import com.shuhart.stepview.StepView;
 
-import org.simple.eventbus.Subscriber;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -206,17 +206,17 @@ public class StepTwoActivity extends BaseActivity<StepTwoPresenter> implements S
         switch (view.getId()) {
             case R.id.next:
                 param.setCardType(card_type);
-                param.setCardState(card_state);
+                param.setState(card_state);
 //                param.setCardTypeName(type.getText().toString());
-                param.setSubsidyLevel(subsidy_level);
+                param.setLeve(subsidy_level);
 //                param.setSubsidyLevelName(level.getText().toString());
-                param.setSubsidy(subsidy);
+                //param.setSubsidy(subsidy);
                 Calendar c = Calendar.getInstance();
                 c.add(Calendar.DAY_OF_WEEK, days);
-                param.setDeadlineTT(c.getTime());
+                param.setDeadline(new SimpleDateFormat("yyyy-MM-dd").format(c.getTime()));
                 param.setCost(Double.valueOf(cost.getText().toString()));
-                param.setCash(Double.valueOf(TextUtils.isEmpty(et_amount.getText().toString().trim()) ? "0" : et_amount.getText().toString().trim()));
-                param.setDonate(Double.valueOf(TextUtils.isEmpty(et_donate.getText().toString().trim()) ? "0" : et_donate.getText().toString().trim()));
+                param.setAmount(Double.valueOf(TextUtils.isEmpty(et_amount.getText().toString().trim()) ? "0" : et_amount.getText().toString().trim()));
+                param.setDonateAmount(Double.valueOf(TextUtils.isEmpty(et_donate.getText().toString().trim()) ? "0" : et_donate.getText().toString().trim()));
                 Intent intent = new Intent();
                 intent.putExtra(AppConstant.ActivityIntent.STEP2, param);
                 intent.setClass(StepTwoActivity.this, StepThreeActivity.class);
@@ -363,8 +363,4 @@ public class StepTwoActivity extends BaseActivity<StepTwoPresenter> implements S
 
     }
 
-    @Subscriber(tag = EventBusTags.STEP_DONE)
-    public void closePage(String s) {
-        finish();
-    }
 }

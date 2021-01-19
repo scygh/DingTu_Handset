@@ -9,6 +9,8 @@ import com.jess.arms.http.imageloader.ImageLoader;
 import com.jess.arms.integration.AppManager;
 import com.jess.arms.mvp.BasePresenter;
 import com.jess.arms.utils.RxLifecycleUtils;
+import com.scy.dingtu_handset.app.entity.BaseResponseAddisOK;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardRequest;
 import com.scy.dingtu_handset.app.entity.EMGoodsTo2;
 import com.scy.dingtu_handset.app.utils.RxUtils;
 import com.scy.dingtu_handset.app.utils.SpUtils;
@@ -16,7 +18,7 @@ import com.scy.dingtu_handset.app.api.AppConstant;
 import com.scy.dingtu_handset.app.api.BaseResponse;
 import com.scy.dingtu_handset.app.entity.EMGoodsTypeTo;
 import com.scy.dingtu_handset.app.entity.KeySwitchTo;
-import com.scy.dingtu_handset.app.entity.ReadCardTo;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardResponse;
 import com.scy.dingtu_handset.app.entity.SimpleExpenseParam;
 import com.scy.dingtu_handset.app.entity.SimpleExpenseTo;
 import com.scy.dingtu_handset.mvp.contract.WarenverbrauchContract;
@@ -107,10 +109,10 @@ public class WarenverbrauchPresenter extends BasePresenter<WarenverbrauchContrac
                 });
     }
 
-    public void readtCardInfo(int company, int id, int number) {
-        mModel.addReadCard(company, id, number)
+    public void deviceReadCard(int company, int id, DeviceReadCardRequest deviceReadCardRequest) {
+        mModel.deviceReadCard(company, id, deviceReadCardRequest)
                 .compose(RxUtils.applySchedulers(mRootView))
-                .subscribe(new ErrorHandleSubscriber<BaseResponse<ReadCardTo>>(mErrorHandler) {
+                .subscribe(new ErrorHandleSubscriber<BaseResponseAddisOK<DeviceReadCardResponse>>(mErrorHandler) {
                     @Override
                     public void onError(Throwable t) {
                         super.onError(t);
@@ -118,7 +120,7 @@ public class WarenverbrauchPresenter extends BasePresenter<WarenverbrauchContrac
                     }
 
                     @Override
-                    public void onNext(BaseResponse<ReadCardTo> readCardToBaseResponse) {
+                    public void onNext(BaseResponseAddisOK<DeviceReadCardResponse> readCardToBaseResponse) {
                         if (readCardToBaseResponse.getStatusCode() != 200) {
                             mRootView.showMessage(readCardToBaseResponse.getMessage());
                         } else {
@@ -166,8 +168,8 @@ public class WarenverbrauchPresenter extends BasePresenter<WarenverbrauchContrac
                 });
     }
 
-    public void createSimpleExpense(SimpleExpenseParam param) {
-        mModel.createSimpleExpense(param)
+    public void createSimpleExpense(int companyCode, int deviceID, SimpleExpenseParam param) {
+        mModel.createSimpleExpense(companyCode, deviceID, param)
                 .compose(RxUtils.applySchedulers(mRootView))
                 .subscribe(new Observer<BaseResponse<SimpleExpenseTo>>() {
                     @Override

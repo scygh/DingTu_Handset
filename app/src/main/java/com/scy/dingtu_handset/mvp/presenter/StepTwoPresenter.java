@@ -159,7 +159,7 @@ public class StepTwoPresenter extends BasePresenter<StepTwoContract.Model, StepT
     }
 
     public void onDonateSwitch() {
-        mModel.getPayKeySwitch("DonateSwitch")
+        mModel.getPayKeySwitch("DepositDonateSwitch")
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<BaseResponse<String>>() {

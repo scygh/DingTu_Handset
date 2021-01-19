@@ -8,6 +8,11 @@ import com.jess.arms.integration.IRepositoryManager;
 import com.jess.arms.mvp.BaseModel;
 import com.scy.dingtu_handset.app.api.UserService;
 import com.scy.dingtu_handset.app.api.BaseResponse;
+import com.scy.dingtu_handset.app.entity.BaseResponseAddisOK;
+import com.scy.dingtu_handset.app.entity.CodeExpenseRequest;
+import com.scy.dingtu_handset.app.entity.CodeExpenseResponse;
+import com.scy.dingtu_handset.app.entity.CodeReadRequest;
+import com.scy.dingtu_handset.app.entity.CodeReadResponse;
 import com.scy.dingtu_handset.app.entity.QRExpenseParam;
 import com.scy.dingtu_handset.app.entity.QRExpenseTo;
 import com.scy.dingtu_handset.app.entity.QRReadTo;
@@ -48,11 +53,14 @@ public class PaymentModel extends BaseModel implements PaymentContract.Model {
         this.mGson = null;
         this.mApplication = null;
     }
-    @Override public Observable<BaseResponse<QRReadTo>> getQRRead(String qrCodeContent, int deviceID) {
-        return mRepositoryManager.obtainRetrofitService(UserService.class).getQRRead(qrCodeContent, deviceID);
+
+    @Override
+    public Observable<BaseResponseAddisOK<CodeReadResponse>> codeRead(int companyCode, int deviceID, CodeReadRequest codeReadRequest) {
+        return mRepositoryManager.obtainRetrofitService(UserService.class).codeRead(companyCode, deviceID, codeReadRequest);
     }
 
-    @Override public Observable<BaseResponse<QRExpenseTo>> addQRExpense(QRExpenseParam param) {
-        return mRepositoryManager.obtainRetrofitService(UserService.class).addQRExpense(param);
+    @Override
+    public Observable<BaseResponseAddisOK<CodeExpenseResponse>> codeExpense(int companyCode, int deviceID, CodeExpenseRequest codeExpenseRequest) {
+        return mRepositoryManager.obtainRetrofitService(UserService.class).codeExpense(companyCode, deviceID, codeExpenseRequest);
     }
 }

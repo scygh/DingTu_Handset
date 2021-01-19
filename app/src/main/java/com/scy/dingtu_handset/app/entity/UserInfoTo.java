@@ -5,20 +5,18 @@ import java.io.Serializable;
 public class UserInfoTo implements Serializable {
 
     /**
-     * AccessToken : ae879ba3-260e-4797-906a-48b862f77292
-     * CompanyCode : 1001
-     * UserID : c883048c-dec8-4bbc-bb4b-1d29594d87fd
-     * Account : 1001
-     * ExpirationTime : 2018-11-15 13:34:48
-     * PassWord : 100
+     * AccessToken : string
+     * CompanyCode : 0
+     * UserId : string
+     * Account : string
+     * ExpirationTime : 2021-01-14T01:46:55.449Z
      */
 
     private String AccessToken;
     private int CompanyCode;
-    private String UserID;
+    private String UserId;
     private String Account;
     private String ExpirationTime;
-    private String PassWord;
 
     public String getAccessToken() {
         return AccessToken;
@@ -36,12 +34,12 @@ public class UserInfoTo implements Serializable {
         this.CompanyCode = CompanyCode;
     }
 
-    public String getUserID() {
-        return UserID;
+    public String getUserId() {
+        return UserId;
     }
 
-    public void setUserID(String UserID) {
-        this.UserID = UserID;
+    public void setUserId(String UserId) {
+        this.UserId = UserId;
     }
 
     public String getAccount() {
@@ -58,13 +56,5 @@ public class UserInfoTo implements Serializable {
 
     public void setExpirationTime(String ExpirationTime) {
         this.ExpirationTime = ExpirationTime;
-    }
-
-    public String getPassWord() {
-        return PassWord;
-    }
-
-    public void setPassWord(String PassWord) {
-        this.PassWord = PassWord;
     }
 }

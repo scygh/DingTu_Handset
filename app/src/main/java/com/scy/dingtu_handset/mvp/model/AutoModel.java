@@ -8,9 +8,11 @@ import com.jess.arms.integration.IRepositoryManager;
 import com.jess.arms.mvp.BaseModel;
 import com.scy.dingtu_handset.app.api.UserService;
 import com.scy.dingtu_handset.app.api.BaseResponse;
+import com.scy.dingtu_handset.app.entity.BaseResponseAddisOK;
 import com.scy.dingtu_handset.app.entity.CardInfoTo;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardRequest;
 import com.scy.dingtu_handset.app.entity.KeySwitchTo;
-import com.scy.dingtu_handset.app.entity.ReadCardTo;
+import com.scy.dingtu_handset.app.entity.DeviceReadCardResponse;
 import com.scy.dingtu_handset.app.entity.SimpleExpenseParam;
 import com.scy.dingtu_handset.app.entity.SimpleExpenseTo;
 import com.scy.dingtu_handset.mvp.contract.AutoContract;
@@ -51,19 +53,23 @@ public class AutoModel extends BaseModel implements AutoContract.Model {
         this.mApplication = null;
     }
 
-    @Override public Observable<BaseResponse<CardInfoTo>> getByNumber(int number) {
+    @Override
+    public Observable<BaseResponse<CardInfoTo>> getByNumber(int number) {
         return mRepositoryManager.obtainRetrofitService(UserService.class).getByNumber(number);
     }
 
-    @Override public Observable<BaseResponse<SimpleExpenseTo>> createSimpleExpense(SimpleExpenseParam param) {
-        return mRepositoryManager.obtainRetrofitService(UserService.class).createSimpleExpense(param);
+    @Override
+    public Observable<BaseResponse<SimpleExpenseTo>> createSimpleExpense(int companyCode, int deviceID, SimpleExpenseParam param) {
+        return mRepositoryManager.obtainRetrofitService(UserService.class).createSimpleExpense(companyCode, deviceID, param);
     }
 
-    @Override public Observable<BaseResponse<KeySwitchTo>> getEMDevice(int id) {
+    @Override
+    public Observable<BaseResponse<KeySwitchTo>> getEMDevice(int id) {
         return mRepositoryManager.obtainRetrofitService(UserService.class).getEMDevice(id);
     }
 
-    @Override public Observable<BaseResponse<ReadCardTo>> addReadCard(int companyCode, int deviceID, int number) {
-        return mRepositoryManager.obtainRetrofitService(UserService.class).addReadCard(companyCode, deviceID, number);
+    @Override
+    public Observable<BaseResponseAddisOK<DeviceReadCardResponse>> deviceReadCard(int companyCode, int deviceID, DeviceReadCardRequest readCardRequest) {
+        return mRepositoryManager.obtainRetrofitService(UserService.class).deviceReadCard(companyCode, deviceID, readCardRequest);
     }
 }
