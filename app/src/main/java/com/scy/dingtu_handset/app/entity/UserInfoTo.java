@@ -15,7 +15,7 @@ public class UserInfoTo implements Serializable {
 
     private String AccessToken;
     private int CompanyCode;
-    private String UserID;
+    private String UserId;
     private String Account;
     private String ExpirationTime;
     private String PassWord;
@@ -36,12 +36,12 @@ public class UserInfoTo implements Serializable {
         this.CompanyCode = CompanyCode;
     }
 
-    public String getUserID() {
-        return UserID;
+    public String getUserId() {
+        return UserId;
     }
 
-    public void setUserID(String UserID) {
-        this.UserID = UserID;
+    public void setUserId(String UserID) {
+        this.UserId = UserID;
     }
 
     public String getAccount() {
