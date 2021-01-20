@@ -420,7 +420,7 @@ public class RefundActivity extends NfcJellyBeanActivity<RefundPresenter> implem
             if (!TextUtils.isEmpty(etAmount.getText().toString()) && Double.parseDouble(etAmount.getText().toString()) > deviceReadCardResponse.getFinances().get(0).getBalance()) {
                 Toasty.warning(RefundActivity.this, "退款金额不能大于余额", Toast.LENGTH_SHORT, true).show();
                 return;
-            } else if (!TextUtils.isEmpty(etDonate.getText().toString()) && Double.parseDouble(etDonate.getText().toString()) > deviceReadCardResponse.getFinances().get(3).getBalance()) {
+            } else if (!TextUtils.isEmpty(etDonate.getText().toString()) && Double.parseDouble(etDonate.getText().toString()) > Double.parseDouble(fdonate)) {
                 Toasty.warning(RefundActivity.this, "赠送扣除不能大于赠送余额", Toast.LENGTH_SHORT, true).show();
                 return;
             }

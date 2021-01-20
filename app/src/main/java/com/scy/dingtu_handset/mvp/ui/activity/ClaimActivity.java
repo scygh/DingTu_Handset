@@ -347,13 +347,6 @@ public class ClaimActivity extends NfcJellyBeanActivity<ClaimPresenter> implemen
         cardview2.scheduleLayoutAnimation();
         cardview3.setLayoutAnimation(controller);
         cardview3.scheduleLayoutAnimation();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                finish();
-            }
-        }, 1000);
-
     }
 
     @SuppressLint("HandlerLeak")

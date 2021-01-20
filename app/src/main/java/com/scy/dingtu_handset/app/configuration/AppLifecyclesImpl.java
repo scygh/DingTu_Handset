@@ -37,11 +37,6 @@ import com.xiasuhuei321.loadingdialog.view.LoadingDialog;
 import butterknife.ButterKnife;
 import me.jessyan.retrofiturlmanager.RetrofitUrlManager;
 import timber.log.Timber;
-
-import static com.scy.dingtu_handset.app.api.Api.BAIDU_DOMAIN;
-import static com.scy.dingtu_handset.app.api.Api.BAIDU_DOMAIN_NAME;
-import static com.scy.dingtu_handset.app.api.Api.EASYDL_DOMNAIN;
-import static com.scy.dingtu_handset.app.api.Api.EASYDL_DOMNAIN_NAME;
 import static com.scy.dingtu_handset.app.api.Api.UPDATECENTER_DOMAIN;
 import static com.scy.dingtu_handset.app.api.Api.UPDATECENTER_NAME;
 
@@ -111,8 +106,8 @@ public class AppLifecyclesImpl implements AppLifecycles {
 
         AudioUtils.getInstance().init(application);
 //        UMConfigure.init(Context context, String appkey, String channel, int deviceType, String pushSecret);
-        RetrofitUrlManager.getInstance().putDomain(BAIDU_DOMAIN_NAME, BAIDU_DOMAIN);
-        RetrofitUrlManager.getInstance().putDomain(EASYDL_DOMNAIN_NAME, EASYDL_DOMNAIN);
+        //RetrofitUrlManager.getInstance().putDomain(BAIDU_DOMAIN_NAME, BAIDU_DOMAIN);
+        //RetrofitUrlManager.getInstance().putDomain(EASYDL_DOMNAIN_NAME, EASYDL_DOMNAIN);
         RetrofitUrlManager.getInstance().putDomain(UPDATECENTER_NAME, UPDATECENTER_DOMAIN);
     }
 

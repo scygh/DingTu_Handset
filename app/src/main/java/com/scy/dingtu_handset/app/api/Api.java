@@ -28,18 +28,11 @@ package com.scy.dingtu_handset.app.api;
  */
 public interface Api {
 
-    public static final String APP_DOMAIN = "http://dev.open.api.dt128.com";
+    public static final String APP_DOMAIN = "http://open.api.dt128.com";
     public static final int RequestSuccess = 200;
 
-    public static final String BAIDU_DOMAIN_NAME = "baidu";
-    public static final String BAIDU_DOMAIN = "https://aip.baidubce.com";
-
-    public static final String EASYDL_DOMNAIN_NAME = "easydl";
-    public static final String EASYDL_DOMNAIN = "http://dev.open.api.dt128.com";
-    public static final String ReturnSuccess = "0";
-
     public static final String UPDATECENTER_NAME = "UpdateCenter";
-    public static final String UPDATECENTER_DOMAIN = "http://dev.open.api.dt128.com";
+    public static final String UPDATECENTER_DOMAIN = "http://updatecenter.dt128.com";
 
     //public static final String APP_DOMAIN = "http://120.25.73.33:5000";
     //public static final String EASYDL_DOMNAIN = "http://120.25.73.33:5000";

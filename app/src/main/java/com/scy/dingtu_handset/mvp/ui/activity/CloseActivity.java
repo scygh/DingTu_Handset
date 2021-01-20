@@ -140,6 +140,12 @@ public class CloseActivity extends NfcJellyBeanActivity<ClosePresenter> implemen
     private boolean isFirst = true;
 
     @Override
+    protected void onDestroy() {
+        closeReadNfc();
+        super.onDestroy();
+    }
+
+    @Override
     public void setupActivityComponent(@NonNull AppComponent appComponent) {
         DaggerCloseComponent //如找不到该类,请编译一下项目
                 .builder()
@@ -418,7 +424,7 @@ public class CloseActivity extends NfcJellyBeanActivity<ClosePresenter> implemen
         donate.setText(String.format("%.2f", content.getFinances().get(3).getBalance()));
         subsidies.setText(String.format("%.2f", content.getFinances().get(1).getBalance()));
         cost.setText(String.format("工本费 %.2f", content.getCard().getCost()));
-        editAmount.setText(String.format("%.2f", sum1));
+        editAmount.setText(String.format("%.2f", content.getFinances().get(0).getBalance()));
         editCost.setText(String.format("%.2f", content.getCard().getCost()));
         flipToGray();
         ObjectAnimator nopeAnimator = ShakeAnimation.nope(cardview);
@@ -522,12 +528,6 @@ public class CloseActivity extends NfcJellyBeanActivity<ClosePresenter> implemen
         }
 
 
-    }
-
-    @Override
-    protected void onDestroy() {
-        closeReadNfc();
-        super.onDestroy();
     }
 
     public void closeReadNfc() {
